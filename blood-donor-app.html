@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ব্লাড ডোনার</title>
+<style>
+:root{--r:#B3122B;--ink:#1B1F2A;--bg:#F3F5F8;--g:#12805C;--m:#6B7280}
+*{box-sizing:border-box;margin:0;font-family:"Noto Sans Bengali","Kalpurush",system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);padding-bottom:64px}
+header{background:var(--r);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;position:sticky;top:0;z-index:5}
+.w{padding:12px}
+input,select,textarea,button{font-size:16px;padding:11px;border:1px solid #d5d9e0;border-radius:8px;width:100%;background:#fff;margin-bottom:8px}
+button.p,.p{background:var(--r);color:#fff;border:0;font-weight:700}
+.card{background:#fff;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.card.u{border-left:5px solid var(--r)}
+.b{min-width:46px;height:46px;border-radius:50%;background:var(--r);color:#fff;display:grid;place-items:center;font-weight:700}
+.i{flex:1;min-width:0}.i small{display:block;color:var(--m)}
+.g{color:var(--g)}.r{color:var(--r)}
+.ac{display:flex;gap:6px}.ac a,.ac button{width:38px;height:38px;padding:0;margin:0;display:grid;place-items:center;text-decoration:none;font-size:18px;border-radius:50%}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd}
+nav button{border:0;border-radius:0;margin:0;font-size:13px;padding:10px 2px;background:#fff;color:var(--m)}
+nav button.on{color:var(--r);font-weight:700}
+.row{display:flex;gap:8px}.row>*{flex:1}
+#cm{height:calc(100vh - 150px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:80%;padding:8px 10px;border-radius:12px;background:#fff;align-self:flex-start}
+.m.me{background:#FBE3E7;align-self:flex-end}
+.m small{display:block;color:var(--m);font-size:11px}
+.m audio{width:200px;height:36px}
+.cb{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px;background:#fff}
+.cb input{margin:0}.cb button{width:48px;margin:0;padding:0}
+.rec{background:var(--r)!important;color:#fff}
+.lb{display:flex;align-items:center;gap:8px;margin-bottom:10px}.lb input{width:auto;margin:0}
+.c{text-align:center;padding:30px;color:var(--m)}
+</style></head><body>
+<div id="app"><p class="c">লোড হচ্ছে...</p></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ===== এখানে আপনার Firebase কনফিগ বসান =====
+const CFG={apiKey:"AIzaSyCK-H24hh88MYifC5EB1ylFJc-S6xVseE8",authDomain:"blood-donar-banibaha.firebaseapp.com",projectId:"blood-donar-banibaha",storageBucket:"blood-donar-banibaha.firebasestorage.app",messagingSenderId:"426856386532",appId:"1:426856386532:web:436b074eae3ea2d2c541f1"};
+// অ্যাডমিনের UID (প্রোফাইল ট্যাবে নিজের UID দেখা যাবে, সেটা এখানে বসান)
+const ADMIN="";
+// ============================================
+firebase.initializeApp(CFG);
+const auth=firebase.auth(),db=firebase.firestore();
+const $=s=>document.querySelector(s),A=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const G=['A+','A-','B+','B-','O+','O-','AB+','AB-'];
+const opts=(sel)=>G.map(g=>`<option ${g===sel?'selected':''}>${g}</option>`).join('');
+let U,ME,USERS=[],URG=[],CHATS=[],tab='home',flt='',q='',inChat=false,CID,unsub;
+const ok=u=>u.avail&&(!u.last||(Date.now()-new Date(u.last))/864e5>=120);
+
+auth.onAuthStateChanged(async u=>{
+  if(!u){auth.signInAnonymously().catch(e=>A.innerHTML='<p class="c">লগইন করা যায়নি: '+esc(e.message)+'</p>');return}
+  U=u;const s=await db.collection('users').doc(u.uid).get();
+  if(s.exists){ME=s.data();start()}else regView()});
+
+function regView(){A.innerHTML=`<header>🩸 রক্তদাতা হিসেবে যোগ দিন</header><form class="w" onsubmit="reg(event)">
+<input name="name" placeholder="আপনার নাম" required>
+<input name="phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" inputmode="tel" required>
+<select name="group">${opts()}</select>
+<input name="area" placeholder="এলাকা (যেমন: বানিয়াবাড়ী)" required>
+<label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">
+<label class="lb"><input type="checkbox" name="ok"> আমার নাম ও নাম্বার সবাইকে দেখানোর অনুমতি দিচ্ছি</label>
+<button class="p">যোগ দিন</button></form>`}
+async function reg(e){e.preventDefault();const f=e.target;
+  if(!f.ok.checked)return alert('নাম্বার দেখানোর অনুমতি টিক দিন');
+  const d={name:f.name.value.trim(),phone:f.phone.value.trim(),group:f.group.value,area:f.area.value.trim(),last:f.last.value||'',avail:true,ts:Date.now()};
+  if(!/^01\d{9}$/.test(d.phone))return alert('সঠিক ১১ ডিজিটের নাম্বার দিন');
+  await db.collection('users').doc(U.uid).set(d);ME=d;start()}
+
+function start(){
+  db.collection('users').onSnapshot(s=>{USERS=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
+  db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
+  db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
+  render()}
+
+const adm=()=>U.uid===ADMIN;
+const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>${esc(u.area)} • ${ok(u)?'<span class="g">দিতে পারবে</span>':'<span class="r">এখন পারবে না</span>'}</small><small>${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}">📞</a><a href="https://wa.me/88${esc(u.phone)}">🟢</a>${u.id!==U.uid?`<button onclick="pm('${u.id}')">✉️</button>`:''}${adm()?`<button onclick="del('users','${u.id}')">🗑</button>`:''}</div></div>`;
+function list(){const t=q.toLowerCase();
+  const l=USERS.filter(u=>(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
+  return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${l.length} জন দাতা</p>`+l.map(card).join(''):'<p class="c">কোনো দাতা পাওয়া যায়নি। অন্য গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
+function upd(){$('#l').innerHTML=list()}
+function render(){
+  let c='';
+  if(tab==='home')c=`<input placeholder="🔍 নাম, এলাকা বা নাম্বার" value="${esc(q)}" oninput="q=this.value;upd()"><select onchange="flt=this.value;upd()"><option value="">সব ব্লাড গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select><div id="l">${list()}</div>`;
+  if(tab==='urg')c=`<form onsubmit="post(event)"><select name="group">${opts()}</select><input name="place" placeholder="হাসপাতাল / এলাকা" required><input name="phone" value="${esc(ME.phone)}" placeholder="যোগাযোগ নাম্বার" required><input name="note" placeholder="কী লাগবে? (যেমন: ২ ব্যাগ, আজ রাতে)"><button class="p">🚨 জরুরি পোস্ট করুন</button></form>`+
+    (URG.length?URG.map(p=>`<div class="card u"><div class="b">${esc(p.group)}</div><div class="i"><b>${esc(p.place)}</b><small>${esc(p.note)}</small><small>${esc(p.name)} • ${new Date(p.ts).toLocaleDateString('bn-BD')}</small></div><div class="ac"><a href="tel:${esc(p.phone)}">📞</a>${(p.uid===U.uid||adm())?`<button onclick="del('urgent','${p.id}')">🗑</button>`:''}</div></div>`).join(''):'<p class="c">এখন কোনো জরুরি অনুরোধ নেই।</p>');
+  if(tab==='chat')c=`<div class="card" onclick="openChat('all','সবার গ্রুপ')"><div class="b">👥</div><div class="i"><b>সবার গ্রুপ</b><small>সব দাতা ও গ্রহীতা একসাথে</small></div></div>`+
+    CHATS.map(x=>{const o=Object.keys(x.names).find(k=>k!==U.uid);return `<div class="card" onclick="openChat('${x.id}','${esc(x.names[o]||'চ্যাট')}')"><div class="b">✉️</div><div class="i"><b>${esc(x.names[o]||'চ্যাট')}</b><small>${esc(x.last||'')}</small></div></div>`}).join('');
+  if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.area)}</small></div></div>
+    <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
+    <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
+    <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
+    <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p>`;
+  A.innerHTML=`<header>🩸 ব্লাড ডোনার</header><div class="w">${c}</div><nav>${[['home','🏠 দাতা'],['urg','🚨 জরুরি'],['chat','💬 চ্যাট'],['me','👤 আমি']].map(([k,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${v}</button>`).join('')}</nav>`}
+
+async function saveMe(){const d={avail:$('#av').checked,last:$('#la').value||''};await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);alert('সংরক্ষণ হয়েছে')}
+async function post(e){e.preventDefault();const f=e.target;
+  await db.collection('urgent').add({group:f.group.value,place:f.place.value.trim(),phone:f.phone.value.trim(),note:f.note.value.trim(),name:ME.name,uid:U.uid,ts:Date.now()});f.reset()}
+async function del(c,id){if(confirm('মুছে ফেলবেন?'))await db.collection(c).doc(id).delete()}
+async function pm(id){const o=USERS.find(u=>u.id===id),cid=[U.uid,id].sort().join('_');
+  await db.collection('chats').doc(cid).set({members:[U.uid,id],names:{[U.uid]:ME.name,[id]:o.name},ts:Date.now()},{merge:true});openChat(cid,o.name)}
+
+function openChat(cid,title){inChat=true;CID=cid;
+  A.innerHTML=`<header><span onclick="closeChat()" style="margin-right:12px">←</span>${esc(title)}</header><div id="cm"></div><div class="cb"><button id="mic" onclick="mic()">🎤</button><input id="tx" placeholder="মেসেজ লিখুন" onkeydown="if(event.key==='Enter')sendT()"><button class="p" onclick="sendT()">➤</button></div>`;
+  unsub=db.collection('chats').doc(cid).collection('m').orderBy('ts','desc').limit(100).onSnapshot(s=>{
+    const b=$('#cm');if(!b)return;
+    b.innerHTML=s.docs.reverse().map(d=>{const m=d.data(),me=m.from===U.uid;
+      return `<div class="m ${me?'me':''}">${me?'':`<small>${esc(m.name)}</small>`}${m.type==='voice'?`<audio controls src="${esc(m.data)}"></audio>`:esc(m.text)}<small>${new Date(m.ts).toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'})}</small></div>`}).join('');
+    b.scrollTop=b.scrollHeight})}
+function closeChat(){unsub&&unsub();inChat=false;render()}
+async function send(m){Object.assign(m,{from:U.uid,name:ME.name,ts:Date.now()});
+  await db.collection('chats').doc(CID).collection('m').add(m);
+  if(CID!=='all')db.collection('chats').doc(CID).set({ts:m.ts,last:m.type==='voice'?'🎤 ভয়েস মেসেজ':m.text},{merge:true})}
+function sendT(){const t=$('#tx'),v=t.value.trim();if(!v)return;t.value='';send({type:'text',text:v})}
+
+let rec,chunks,tm;
+async function mic(){const b=$('#mic');
+  if(rec&&rec.state==='recording'){rec.stop();return}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});
+    rec=new MediaRecorder(st,{audioBitsPerSecond:16000});chunks=[];
+    rec.ondataavailable=e=>chunks.push(e.data);
+    rec.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearTimeout(tm);b.textContent='🎤';b.classList.remove('rec');
+      const r=new FileReader();r.onload=()=>{if(r.result.length>900000)return alert('ভয়েস অনেক বড়, ছোট করে পাঠান');send({type:'voice',data:r.result})};
+      r.readAsDataURL(new Blob(chunks,{type:rec.mimeType}))};
+    rec.start();b.textContent='⏹';b.classList.add('rec');tm=setTimeout(()=>rec.stop(),60000)
+  }catch(e){alert('মাইক চালু করা যায়নি। অ্যাপের মাইক পারমিশন দিন।')}}
+</script></body></html>
