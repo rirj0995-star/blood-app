@@ -2,6 +2,7 @@
 <html lang="bn"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ব্লাড ডোনার</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#B3122B"><link rel="icon" href="icon-192.png">
 <style>
 :root{--r:#B3122B;--ink:#1B1F2A;--bg:#F3F5F8;--g:#12805C;--m:#6B7280}
 *{box-sizing:border-box;margin:0;font-family:"Noto Sans Bengali","Kalpurush",system-ui,sans-serif}
@@ -126,4 +127,5 @@ async function mic(){const b=$('#mic');
       r.readAsDataURL(new Blob(chunks,{type:rec.mimeType}))};
     rec.start();b.textContent='⏹';b.classList.add('rec');tm=setTimeout(()=>rec.stop(),60000)
   }catch(e){alert('মাইক চালু করা যায়নি। অ্যাপের মাইক পারমিশন দিন।')}}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
