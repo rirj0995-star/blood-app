@@ -54,30 +54,53 @@ const ok=u=>u.avail&&(!u.last||(Date.now()-new Date(u.last))/864e5>=120);
 auth.onAuthStateChanged(async u=>{
   if(!u){auth.signInAnonymously().catch(e=>A.innerHTML='<p class="c">লগইন করা যায়নি: '+esc(e.message)+'</p>');return}
   U=u;const s=await db.collection('users').doc(u.uid).get();
-  if(s.exists){ME=s.data();start()}else regView()});
+  if(s.exists){ME=s.data();start()}else regView('')});
 
-function regView(){A.innerHTML=`<header>🩸 রক্তদাতা হিসেবে যোগ দিন</header><form class="w" onsubmit="reg(event)">
-<input name="name" placeholder="আপনার নাম" required>
+const H=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('blood-app:'+s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const dd=a=>{const m={};a.forEach(u=>{if(!m[u.phone]||(u.ts||0)>(m[u.phone].ts||0))m[u.phone]=u});return Object.values(m)};
+function regView(m){const n=m==='in';
+A.innerHTML=`<header>🩸 ${n?'আবার ঢুকুন':'রক্তদাতা হিসেবে যোগ দিন'}</header><form class="w" onsubmit="${n?'login':'reg'}(event)">
+${n?'':'<input name="name" placeholder="আপনার নাম" required>'}
 <input name="phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" inputmode="tel" required>
-<select name="group">${opts()}</select>
-<input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required>
-<label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">
-<label class="lb"><input type="checkbox" name="ok"> আমার নাম ও নাম্বার সবাইকে দেখানোর অনুমতি দিচ্ছি</label>
-<button class="p">যোগ দিন</button></form>`}
+${n?'':`<select name="group">${opts()}</select><input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required><label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">`}
+<input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" placeholder="${n?'আপনার পিন':'৪-৬ ডিজিটের গোপন পিন দিন (মনে রাখুন)'}" required>
+${n?'':'<label class="lb"><input type="checkbox" name="ok"> আমার নাম ও নাম্বার সবাইকে দেখানোর অনুমতি দিচ্ছি</label>'}
+<button class="p">${n?'ঢুকুন':'যোগ দিন'}</button>
+<p class="c r" style="padding:14px" onclick="regView('${n?'':'in'}')">${n?'নতুন রেজিস্ট্রেশন করুন':'আগে রেজিস্ট্রেশন করেছেন? পিন দিয়ে ঢুকুন'}</p></form>`}
 async function reg(e){e.preventDefault();const f=e.target;
   if(!f.ok.checked)return alert('নাম্বার দেখানোর অনুমতি টিক দিন');
-  const d={name:f.name.value.trim(),phone:f.phone.value.trim(),group:f.group.value,area:f.area.value.trim(),last:f.last.value||'',avail:true,ts:Date.now()};
+  const d={name:f.name.value.trim(),phone:f.phone.value.trim(),group:f.group.value,area:f.area.value.trim(),last:f.last.value||'',avail:true,ts:Date.now(),pin:true},pin=f.pin.value;
   if(!/^01\d{9}$/.test(d.phone))return alert('সঠিক ১১ ডিজিটের নাম্বার দিন');
-  await db.collection('users').doc(U.uid).set(d);ME=d;start()}
+  if(!/^\d{4,6}$/.test(pin))return alert('পিন ৪-৬ ডিজিটের সংখ্যা হতে হবে');
+  try{const cid=await H(d.phone+':'+pin),cs=await db.collection('creds').doc(cid).get();
+    if(cs.exists&&(await db.collection('users').doc(cs.data().uid).get()).exists)return alert('এই নাম্বার ও পিন দিয়ে আগেই রেজিস্ট্রেশন হয়েছে। নিচে "পিন দিয়ে ঢুকুন" চাপুন।');
+    const ex=await db.collection('users').where('phone','==',d.phone).get();
+    if(ex.docs.some(x=>x.data().pin))return alert('এই নাম্বার আগেই রেজিস্ট্রেশন হয়েছে। নিচে "পিন দিয়ে ঢুকুন" চাপুন।');
+    await db.collection('users').doc(U.uid).set(d);
+    await db.collection('creds').doc(cid).set({uid:U.uid,phone:d.phone});
+    ME=d;start()}catch(x){alert('সমস্যা হয়েছে: '+x.message)}}
+async function login(e){e.preventDefault();const f=e.target,ph=f.phone.value.trim();
+  try{const cid=await H(ph+':'+f.pin.value),c=await db.collection('creds').doc(cid).get();
+    if(!c.exists)return alert('নাম্বার বা পিন ঠিক নয়');
+    const o=await db.collection('users').doc(c.data().uid).get();
+    if(!o.exists)return alert('প্রোফাইল পাওয়া যায়নি। নতুন করে রেজিস্ট্রেশন করুন।');
+    const d={...o.data(),ts:Date.now()};
+    await db.collection('users').doc(U.uid).set(d);
+    await db.collection('creds').doc(cid).update({uid:U.uid,phone:d.phone});
+    ME=d;start()}catch(x){alert('সমস্যা হয়েছে: '+x.message)}}
+async function setPin(){const p=$('#pn').value;if(!/^\d{4,6}$/.test(p))return alert('পিন ৪-৬ ডিজিটের সংখ্যা হতে হবে');
+  try{const cid=await H(ME.phone+':'+p);if((await db.collection('creds').doc(cid).get()).exists)return alert('এই পিন নেওয়া যাচ্ছে না, অন্য পিন দিন');
+    await db.collection('creds').doc(cid).set({uid:U.uid,phone:ME.phone});await db.collection('users').doc(U.uid).update({pin:true});ME.pin=true;render();alert('পিন সেট হয়েছে। মনে রাখুন।')}catch(x){alert('সমস্যা: '+x.message)}}
+async function delU(ph){if(!confirm('এই নাম্বারের সব প্রোফাইল মুছবেন?'))return;const s=await db.collection('users').where('phone','==',ph).get();await Promise.all(s.docs.map(d=>d.ref.delete()))}
 
 function start(){
-  db.collection('users').onSnapshot(s=>{USERS=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
+  db.collection('users').onSnapshot(s=>{USERS=dd(s.docs.map(d=>({id:d.id,...d.data()})));if(!inChat)render()});
   db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
   db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
   render()}
 
 const adm=()=>U.uid===ADMIN;
-const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>${esc(u.area)} • ${ok(u)?'<span class="g">দিতে পারবে</span>':'<span class="r">এখন পারবে না</span>'}</small><small>${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}">📞</a><a href="https://wa.me/88${esc(u.phone)}">🟢</a>${u.id!==U.uid?`<button onclick="pm('${u.id}')">✉️</button>`:''}${adm()?`<button onclick="del('users','${u.id}')">🗑</button>`:''}</div></div>`;
+const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>${esc(u.area)} • ${ok(u)?'<span class="g">দিতে পারবে</span>':'<span class="r">এখন পারবে না</span>'}</small><small>${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}">📞</a><a href="https://wa.me/88${esc(u.phone)}">🟢</a>${u.id!==U.uid?`<button onclick="pm('${u.id}')">✉️</button>`:''}${adm()?`<button onclick="delU('${esc(u.phone)}')">🗑</button>`:''}</div></div>`;
 function list(){const t=q.toLowerCase();
   const l=USERS.filter(u=>(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
   return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${l.length} জন দাতা</p>`+l.map(card).join(''):'<p class="c">কোনো দাতা পাওয়া যায়নি। অন্য গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
@@ -93,6 +116,7 @@ function render(){
     <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
     <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
+    ${ME.pin?'':`<div class="card" style="flex-direction:column;align-items:stretch"><b>🔒 পিন সেট করুন</b><small style="color:var(--m)">আনইনস্টল করে আবার ঢুকতে এই পিন লাগবে</small><input id="pn" type="password" inputmode="numeric" maxlength="6" placeholder="৪-৬ ডিজিটের পিন"><button class="p" onclick="setPin()">পিন সংরক্ষণ</button></div>`}
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
   A.innerHTML=`<header>🩸 ব্লাড ডোনার</header><div class="w">${c}</div><nav>${[['home','🏠 দাতা'],['urg','🚨 জরুরি'],['chat','💬 চ্যাট'],['me','👤 আমি']].map(([k,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${v}</button>`).join('')}</nav>`}
 
