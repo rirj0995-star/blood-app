@@ -39,7 +39,7 @@ nav button.on{color:var(--r);font-weight:700}
 // ===== এখানে আপনার Firebase কনফিগ বসান =====
 const CFG={apiKey:"AIzaSyCK-H24hh88MYifC5EB1ylFJc-S6xVseE8",authDomain:"blood-donar-banibaha.firebaseapp.com",projectId:"blood-donar-banibaha",storageBucket:"blood-donar-banibaha.firebasestorage.app",messagingSenderId:"426856386532",appId:"1:426856386532:web:436b074eae3ea2d2c541f1"};
 // অ্যাডমিনের UID (প্রোফাইল ট্যাবে নিজের UID দেখা যাবে, সেটা এখানে বসান)
-const ADMIN="";
+const ADMIN="xMKjp1K97LcLaLFPrZnoBszgCyD3";
 // ============================================
 firebase.initializeApp(CFG);
 const auth=firebase.auth(),db=firebase.firestore();
@@ -59,7 +59,7 @@ function regView(){A.innerHTML=`<header>🩸 রক্তদাতা হিস�
 <input name="name" placeholder="আপনার নাম" required>
 <input name="phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" inputmode="tel" required>
 <select name="group">${opts()}</select>
-<input name="area" placeholder="এলাকা (যেমন: বানিয়াবাড়ী)" required>
+<input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required>
 <label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">
 <label class="lb"><input type="checkbox" name="ok"> আমার নাম ও নাম্বার সবাইকে দেখানোর অনুমতি দিচ্ছি</label>
 <button class="p">যোগ দিন</button></form>`}
@@ -92,7 +92,7 @@ function render(){
     <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
     <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
-    <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p>`;
+    <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
   A.innerHTML=`<header>🩸 ব্লাড ডোনার</header><div class="w">${c}</div><nav>${[['home','🏠 দাতা'],['urg','🚨 জরুরি'],['chat','💬 চ্যাট'],['me','👤 আমি']].map(([k,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${v}</button>`).join('')}</nav>`}
 
 async function saveMe(){const d={avail:$('#av').checked,last:$('#la').value||''};await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);alert('সংরক্ষণ হয়েছে')}
