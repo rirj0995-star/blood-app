@@ -58,8 +58,21 @@ auth.onAuthStateChanged(async u=>{
 
 const H=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('blood-app:'+s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 const dd=a=>{const m={};a.forEach(u=>{if(!m[u.phone]||(u.ts||0)>(m[u.phone].ts||0))m[u.phone]=u});return Object.values(m)};
+let DP=null;
+const UA=navigator.userAgent,STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone,WV=/; wv\)/.test(UA),INAPP=/FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(UA);
+function banner(){
+ if(STANDALONE||WV)return '';
+ if(DP)return '<button class="p" style="font-size:18px;padding:14px" onclick="inst()">📲 অ্যাপ ইনস্টল করুন (ফ্রি)</button>';
+ if(INAPP)return '<div class="card" style="flex-direction:column;align-items:stretch;border-left:5px solid var(--r)"><b>📲 অ্যাপ ইনস্টল করতে</b><small style="color:var(--m)">ফেসবুকের ভেতরে ইনস্টল হয় না। উপরে ডানের তিন ডটে চেপে <b>"Open in Chrome"</b> (ক্রোমে খুলুন) বেছে নিন, তখন এখানে ইনস্টল বাটন আসবে।</small><button onclick="cp()" style="margin-top:8px">🔗 লিংক কপি করুন</button></div>';
+ return '<div class="card" style="flex-direction:column;align-items:stretch;border-left:5px solid var(--r)"><b>📲 অ্যাপ ইনস্টল করতে</b><small style="color:var(--m)">Chrome এর ডানের তিন ডটে চেপে <b>"Install app"</b> বা <b>"Add to Home screen"</b> চাপুন।</small></div>'}
+function rb(){const e=document.getElementById('ib');if(e)e.innerHTML=banner()}
+async function inst(){if(!DP)return;DP.prompt();try{await DP.userChoice}catch(e){}DP=null;rb()}
+function cp(){const u=location.href.split('#')[0];(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>alert('লিংক কপি হয়েছে। Chrome এ পেস্ট করে খুলুন।')).catch(()=>prompt('এই লিংক কপি করুন:',u))}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DP=e;rb()});
+addEventListener('appinstalled',()=>{DP=null;rb()});
 function regView(m){const n=m==='in';
 A.innerHTML=`<header>🩸 ${n?'আবার ঢুকুন':'রক্তদাতা হিসেবে যোগ দিন'}</header><form class="w" onsubmit="${n?'login':'reg'}(event)">
+<div id="ib">${banner()}</div>
 ${n?'':'<input name="name" placeholder="আপনার নাম" required>'}
 <input name="phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" inputmode="tel" required>
 ${n?'':`<select name="group">${opts()}</select><input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required><label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">`}
