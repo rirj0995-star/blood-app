@@ -110,10 +110,16 @@ function start(){
   db.collection('users').onSnapshot(s=>{USERS=dd(s.docs.map(d=>({id:d.id,...d.data()})));if(!inChat)render()});
   db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
   db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
+  db.collection('calls').where('to','==',U.uid).where('status','==','ringing').onSnapshot(q=>q.docChanges().forEach(c=>{
+    if(c.type==='added'){const d=c.doc.data();if(Date.now()-d.ts<60000&&!CALL){CALL=c.doc.id;RING=c.doc.id;ring(c.doc.id,d)}}
+    if(c.type==='removed'&&RING===c.doc.id){RING=null;finish('কল শেষ হয়েছে')}}));
   render()}
 
 const adm=()=>U.uid===ADMIN;
-const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>${esc(u.area)} • ${ok(u)?'<span class="g">দিতে পারবে</span>':'<span class="r">এখন পারবে না</span>'}</small><small>${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}">📞</a><a href="https://wa.me/88${esc(u.phone)}">🟢</a>${u.id!==U.uid?`<button onclick="pm('${u.id}')">✉️</button>`:''}${adm()?`<button onclick="delU('${esc(u.phone)}')">🗑</button>`:''}</div></div>`;
+const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+function ago(l){if(!l)return 'এখনো দেননি';const t=Math.floor((Date.now()-new Date(l))/864e5);if(isNaN(t))return 'জানা নেই';if(t<=0)return 'আজ';if(t<30)return bn(t)+' দিন আগে';
+  if(t<365){const m=Math.floor(t/30),d=t%30;return bn(m)+' মাস'+(d?' '+bn(d)+' দিন':'')+' আগে'}const y=Math.floor(t/365),m=Math.floor((t%365)/30);return bn(y)+' বছর'+(m?' '+bn(m)+' মাস':'')+' আগে'}
+const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>${esc(u.area)} • ${ok(u)?'<span class="g">দিতে পারবে</span>':'<span class="r">এখন পারবে না</span>'}</small><small>${esc(u.phone)}</small><small>🩸 শেষ রক্তদান: ${ago(u.last)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}">📞</a><a href="https://wa.me/88${esc(u.phone)}">🟢</a>${u.id!==U.uid?`<button onclick="pm('${u.id}')">✉️</button>`:''}${adm()?`<button onclick="delU('${esc(u.phone)}')">🗑</button>`:''}</div></div>`;
 function list(){const t=q.toLowerCase();
   const l=USERS.filter(u=>(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
   return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${l.length} জন দাতা</p>`+l.map(card).join(''):'<p class="c">কোনো দাতা পাওয়া যায়নি। অন্য গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
@@ -140,8 +146,9 @@ async function del(c,id){if(confirm('মুছে ফেলবেন?'))await db
 async function pm(id){const o=USERS.find(u=>u.id===id),cid=[U.uid,id].sort().join('_');
   await db.collection('chats').doc(cid).set({members:[U.uid,id],names:{[U.uid]:ME.name,[id]:o.name},ts:Date.now()},{merge:true});openChat(cid,o.name)}
 
-function openChat(cid,title){inChat=true;CID=cid;
-  A.innerHTML=`<header><span onclick="closeChat()" style="margin-right:12px">←</span>${esc(title)}</header><div id="cm"></div><div class="cb"><button id="mic" onclick="mic()">🎤</button><input id="tx" placeholder="মেসেজ লিখুন" onkeydown="if(event.key==='Enter')sendT()"><button class="p" onclick="sendT()">➤</button></div>`;
+let CT='';
+function openChat(cid,title){inChat=true;CID=cid;CT=title;
+  A.innerHTML=`<header><span onclick="closeChat()" style="margin-right:12px">←</span>${esc(title)}${cid==='all'?'':`<span style="float:right" onclick="startCall('${cid.split('_').find(x=>x!==U.uid)}',CT)">📞</span>`}</header><div id="cm"></div><div class="cb"><button id="mic" onclick="mic()">🎤</button><input id="tx" placeholder="মেসেজ লিখুন" onkeydown="if(event.key==='Enter')sendT()"><button class="p" onclick="sendT()">➤</button></div>`;
   unsub=db.collection('chats').doc(cid).collection('m').orderBy('ts','desc').limit(100).onSnapshot(s=>{
     const b=$('#cm');if(!b)return;
     b.innerHTML=s.docs.reverse().map(d=>{const m=d.data(),me=m.from===U.uid;
@@ -164,5 +171,51 @@ async function mic(){const b=$('#mic');
       r.readAsDataURL(new Blob(chunks,{type:rec.mimeType}))};
     rec.start();b.textContent='⏹';b.classList.add('rec');tm=setTimeout(()=>rec.stop(),60000)
   }catch(e){alert('মাইক চালু করা যায়নি। অ্যাপের মাইক পারমিশন দিন।')}}
+
+// ===== অনলাইন ভয়েস কল =====
+let PC,LS,CALL=null,RING=null,CU=[],PEND=[],RT,CN='',TT;
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+function cui(h){let e=$('#cu');if(!e){e=document.createElement('div');e.id='cu';e.style.cssText='position:fixed;inset:0;background:rgba(27,31,42,.94);color:#fff;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px';document.body.appendChild(e)}e.innerHTML=h}
+const cbtn=(t,f,c)=>`<button onclick="${f}" style="width:200px;background:${c};color:#fff;border:0;font-weight:700">${t}</button>`;
+function newPC(){const p=new RTCPeerConnection(ICE);PEND=[];
+  p.ontrack=e=>{let a=$('#ra');if(!a){a=document.createElement('audio');a.id='ra';a.autoplay=true;a.playsInline=true;document.body.appendChild(a)}a.srcObject=e.streams[0];a.play&&a.play().catch(()=>{})};
+  p.onconnectionstatechange=()=>{if(p.connectionState==='connected'){clearTimeout(RT);const t0=Date.now();clearInterval(TT);
+      cui(`<div style="font-size:56px">🎧</div><h2>${esc(CN)}</h2><div id="tm" style="font-size:26px">00:00</div>`+cbtn('কাটুন','hang()','#B3122B'));
+      TT=setInterval(()=>{const e=$('#tm');if(e){const s=Math.floor((Date.now()-t0)/1000);e.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}},1000)}
+    else if(p.connectionState==='failed')hang('সংযোগ হয়নি। নেটওয়ার্কের কারণে কল লাগেনি।')};
+  return p}
+function watch(ref,caller){
+  const u1=ref.onSnapshot(async s=>{const d=s.data();if(!d||!PC)return;
+    if(caller&&d.answer&&!PC.remoteDescription){await PC.setRemoteDescription(d.answer);PEND.forEach(c=>PC.addIceCandidate(c).catch(()=>{}));PEND=[]}
+    if(d.status==='ended'||d.status==='rejected')finish(d.status==='rejected'?'কল কেটে দিয়েছে':'কল শেষ হয়েছে')});
+  const u2=ref.collection('cand').onSnapshot(q=>q.docChanges().forEach(c=>{if(c.type!=='added')return;const x=c.doc.data();if(x.from===U.uid||!PC)return;
+    const ic=JSON.parse(x.c);PC.remoteDescription?PC.addIceCandidate(ic).catch(()=>{}):PEND.push(ic)}));
+  CU=[u1,u2]}
+async function mic0(){try{return await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){alert('মাইক চালু করা যায়নি। অ্যাপের মাইকের অনুমতি দিন।');return null}}
+async function startCall(to,name){if(CALL||!to)return;LS=await mic0();if(!LS)return;CN=name;
+  const ref=db.collection('calls').doc();CALL=ref.id;PC=newPC();LS.getTracks().forEach(t=>PC.addTrack(t,LS));
+  PC.onicecandidate=e=>e.candidate&&ref.collection('cand').add({from:U.uid,c:JSON.stringify(e.candidate)}).catch(()=>{});
+  try{const o=await PC.createOffer();
+    await ref.set({from:U.uid,fromName:ME.name,to,status:'ringing',offer:{type:o.type,sdp:o.sdp},ts:Date.now()});
+    await PC.setLocalDescription(o)}catch(e){return finish('কল শুরু করা যায়নি')}
+  cui(`<div style="font-size:56px">📞</div><h2>${esc(name)} কে কল হচ্ছে...</h2>`+cbtn('কাটুন','hang()','#B3122B'));
+  watch(ref,true);RT=setTimeout(()=>hang('কেউ ধরেনি'),45000)}
+function ring(id,d){CN=d.fromName||'কেউ';try{navigator.vibrate&&navigator.vibrate([500,300,500,300,500])}catch(e){}
+  cui(`<div style="font-size:56px">📞</div><h2>${esc(CN)} কল করছে</h2>`+cbtn('ধরুন','answer()','#12805C')+cbtn('কাটুন','reject()','#B3122B'))}
+async function answer(){const id=RING;if(!id)return;RING=null;LS=await mic0();if(!LS)return reject();
+  const ref=db.collection('calls').doc(id);
+  try{const d=(await ref.get()).data();if(!d||d.status!=='ringing')return finish('কল শেষ হয়ে গেছে');
+    PC=newPC();LS.getTracks().forEach(t=>PC.addTrack(t,LS));
+    PC.onicecandidate=e=>e.candidate&&ref.collection('cand').add({from:U.uid,c:JSON.stringify(e.candidate)}).catch(()=>{});
+    await PC.setRemoteDescription(d.offer);const a=await PC.createAnswer();await PC.setLocalDescription(a);
+    await ref.update({answer:{type:a.type,sdp:a.sdp},status:'accepted'});
+    cui(`<h2>${esc(CN)}</h2><p>সংযোগ হচ্ছে...</p>`+cbtn('কাটুন','hang()','#B3122B'));watch(ref,false);
+    RT=setTimeout(()=>{if(PC&&PC.connectionState!=='connected')hang('সংযোগ হয়নি')},20000)}catch(e){finish('কল ধরা যায়নি')}}
+function reject(){const id=RING||CALL;RING=null;if(id)db.collection('calls').doc(id).update({status:'rejected'}).catch(()=>{});finish('')}
+function hang(m){if(CALL)db.collection('calls').doc(CALL).update({status:'ended'}).catch(()=>{});finish(m||'')}
+function finish(m){if(!CALL&&!PC&&!$('#cu'))return;clearTimeout(RT);clearInterval(TT);CU.forEach(f=>f());CU=[];
+  try{PC&&PC.close()}catch(e){}PC=null;LS&&LS.getTracks().forEach(t=>t.stop());LS=null;CALL=null;RING=null;PEND=[];
+  const a=$('#ra');a&&a.remove();
+  if(m){cui(`<h2>${esc(m)}</h2>`);setTimeout(()=>{const e=$('#cu');e&&e.remove()},1800)}else{const e=$('#cu');e&&e.remove()}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
