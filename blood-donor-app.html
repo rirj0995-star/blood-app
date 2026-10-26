@@ -2,35 +2,44 @@
 <html lang="bn"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ব্লাড ডোনার</title>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#B3122B"><link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#B3122B"><meta name="color-scheme" content="light dark"><link rel="icon" href="icon-192.png">
 <style>
-:root{--r:#B3122B;--ink:#1B1F2A;--bg:#F3F5F8;--g:#12805C;--m:#6B7280}
-*{box-sizing:border-box;margin:0;font-family:"Noto Sans Bengali","Kalpurush",system-ui,sans-serif}
-body{background:var(--bg);color:var(--ink);padding-bottom:64px}
-header{background:var(--r);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;position:sticky;top:0;z-index:5}
-.w{padding:12px}
-input,select,textarea,button{font-size:16px;padding:11px;border:1px solid #d5d9e0;border-radius:8px;width:100%;background:#fff;margin-bottom:8px}
-button.p,.p{background:var(--r);color:#fff;border:0;font-weight:700}
-.card{background:#fff;border-radius:10px;padding:10px;display:flex;gap:10px;align-items:center;margin-bottom:8px}
+:root{--r:#B3122B;--r2:#8E0E21;--rt:#B3122B;--ink:#1B1F2A;--bg:#F3F5F8;--card:#fff;--g:#12805C;--m:#5F6877;--line:#E3E7ED;--chip:#F1F3F7;--me:#FBE3E7;--sh:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.05)}
+@media(prefers-color-scheme:dark){:root{--rt:#FF7A8C;--ink:#EEF0F4;--bg:#0F1218;--card:#1A1E27;--g:#3FBF8F;--m:#9AA3B2;--line:#2A303C;--chip:#252B36;--me:#4A1822;--sh:0 1px 2px rgba(0,0,0,.4)}}
+*{box-sizing:border-box;margin:0;font-family:"Noto Sans Bengali","Kalpurush","Hind Siliguri",system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);padding-bottom:72px;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+header{background:linear-gradient(135deg,var(--r),var(--r2));color:#fff;padding:15px 16px;font-size:19px;font-weight:700;position:sticky;top:0;z-index:5;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.w{padding:14px}
+input,select,textarea,button{font-size:16px;padding:12px 14px;min-height:48px;border:1px solid var(--line);border-radius:12px;width:100%;background:var(--card);color:var(--ink);margin-bottom:10px;transition:border-color .15s,box-shadow .15s,transform .1s}
+input::placeholder{color:var(--m)}
+input:focus,select:focus{outline:0;border-color:var(--r);box-shadow:0 0 0 3px rgba(179,18,43,.18)}
+button:active{transform:scale(.97)}
+button:focus-visible,a:focus-visible{outline:3px solid rgba(179,18,43,.4);outline-offset:2px}
+button.p,.p{background:linear-gradient(135deg,var(--r),var(--r2));color:#fff;border:0;font-weight:700;box-shadow:0 4px 12px rgba(179,18,43,.3)}
+label{display:block;color:var(--m);font-size:14px;margin:2px 2px 6px}
+.card{background:var(--card);border-radius:16px;padding:12px;display:flex;gap:12px;align-items:center;margin-bottom:10px;box-shadow:var(--sh)}
 .card.u{border-left:5px solid var(--r)}
-.b{min-width:46px;height:46px;border-radius:50%;background:var(--r);color:#fff;display:grid;place-items:center;font-weight:700}
-.i{flex:1;min-width:0}.i small{display:block;color:var(--m)}
-.g{color:var(--g)}.r{color:var(--r)}
-.ac{display:flex;gap:6px}.ac a,.ac button{width:38px;height:38px;padding:0;margin:0;display:grid;place-items:center;text-decoration:none;font-size:18px;border-radius:50%}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd}
-nav button{border:0;border-radius:0;margin:0;font-size:13px;padding:10px 2px;background:#fff;color:var(--m)}
-nav button.on{color:var(--r);font-weight:700}
+.b{min-width:50px;height:50px;border-radius:14px;background:linear-gradient(145deg,var(--r),var(--r2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px;box-shadow:0 3px 8px rgba(179,18,43,.3)}
+.i{flex:1;min-width:0}.i b{font-size:17px}.i small{display:block;color:var(--m);font-size:14px;margin-top:1px}
+.g{color:var(--g)}.r{color:var(--rt)}
+.i .g,.i .r{display:inline-block;padding:0 9px;border-radius:99px;font-size:12px;font-weight:700;line-height:20px}
+.i .g{background:rgba(18,128,92,.13)}.i .r{background:rgba(179,18,43,.12)}
+.ac{display:flex;gap:6px}.ac a,.ac button{width:42px;height:42px;min-height:0;padding:0;margin:0;display:grid;place-items:center;text-decoration:none;font-size:19px;border-radius:50%;background:var(--chip);border:0}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(16,24,40,.06)}
+nav button{border:0;border-radius:0;margin:0;font-size:13px;padding:10px 2px 8px;background:transparent;color:var(--m);min-height:56px}
+nav button.on{color:var(--rt);font-weight:700;box-shadow:inset 0 3px 0 var(--r)}
 .row{display:flex;gap:8px}.row>*{flex:1}
-#cm{height:calc(100vh - 150px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
-.m{max-width:80%;padding:8px 10px;border-radius:12px;background:#fff;align-self:flex-start}
-.m.me{background:#FBE3E7;align-self:flex-end}
-.m small{display:block;color:var(--m);font-size:11px}
-.m audio{width:200px;height:36px}
-.cb{position:fixed;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px;background:#fff}
-.cb input{margin:0}.cb button{width:48px;margin:0;padding:0}
+#cm{height:calc(100vh - 150px);height:calc(100dvh - 150px);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:80%;padding:9px 12px;border-radius:16px 16px 16px 4px;background:var(--card);align-self:flex-start;box-shadow:var(--sh)}
+.m.me{background:var(--me);align-self:flex-end;border-radius:16px 16px 4px 16px}
+.m small{display:block;color:var(--m);font-size:11px;margin-top:2px}
+.m audio{width:210px;height:38px}
+.cb{position:fixed;bottom:0;left:0;right:0;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+.cb input{margin:0;border-radius:24px}.cb button{width:48px;margin:0;padding:0;border-radius:50%}
 .rec{background:var(--r)!important;color:#fff}
-.lb{display:flex;align-items:center;gap:8px;margin-bottom:10px}.lb input{width:auto;margin:0}
+.lb{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:var(--ink);font-size:15px}.lb input{width:auto;min-height:0;margin:0;accent-color:var(--r)}
 .c{text-align:center;padding:30px;color:var(--m)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body>
 <div id="app"><p class="c">লোড হচ্ছে...</p></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
