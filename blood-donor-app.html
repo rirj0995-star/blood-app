@@ -8,25 +8,12 @@
 *{box-sizing:border-box;margin:0;font-family:"Noto Sans Bengali","Kalpurush","Hind Siliguri",system-ui,sans-serif}
 body{background:radial-gradient(90% 40% at 50% 0,#1a0812 0,#070A10 70%) fixed;color:var(--ink);padding-bottom:92px;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 header{background:linear-gradient(135deg,var(--r),var(--r2));color:#fff;padding:15px 16px;font-size:19px;font-weight:700;position:sticky;top:0;z-index:5;box-shadow:0 2px 14px rgba(229,35,63,.35)}
-.hero{position:relative;overflow:hidden;padding:22px 14px 32px;min-height:138px;background:radial-gradient(120% 160% at 85% 130%,rgba(255,30,60,.55),transparent 60%),linear-gradient(180deg,#240610,#090B12);display:flex;align-items:center;gap:14px}
+.hero{position:relative;overflow:hidden;padding:20px 14px 30px;background:radial-gradient(120% 160% at 85% 130%,rgba(255,30,60,.55),transparent 60%),linear-gradient(180deg,#240610,#090B12);display:flex;align-items:center;gap:14px}
 .hero:after{content:'';position:absolute;left:-25%;right:-25%;bottom:-46px;height:70px;border-radius:50%;border-top:3px solid #ff3355;box-shadow:0 -10px 26px rgba(255,40,70,.65)}
 .hero svg{flex:none;overflow:visible;max-width:64px;height:auto;filter:drop-shadow(0 0 10px rgba(255,40,70,.7))}
 .hero h1{white-space:nowrap;font-size:31px;font-weight:800;line-height:1.05;color:#fff;font-family:system-ui,sans-serif}.hero h1 span{color:#ff2d4b}
 .hero small{display:block;white-space:nowrap;letter-spacing:2px;font-size:10px;color:#d7dbe4;margin-top:6px;font-family:system-ui,sans-serif}
-.hero .hh{margin-left:auto;opacity:1;max-width:94px;width:26%;height:auto;margin-top:0;filter:drop-shadow(0 0 10px rgba(255,40,70,.7));z-index:1}
-.hero:before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#ff2448,#ff7386,transparent);box-shadow:0 0 15px #ff2448}
-.sec{align-items:center;margin:8px 2px 16px}
-.sec small{font-size:13px;line-height:1.55}
-input,select,textarea{border-radius:18px;background:linear-gradient(120deg,#0b111b,#070a10);border-color:#202a39}
-#l .card{border-radius:25px;padding:14px 12px;gap:14px;min-height:124px}
-#l .b{min-width:74px;height:74px;border-radius:23px;font-size:30px;align-self:center;margin-top:0}
-#l .i>b{font-size:20px;line-height:1.3}
-#l .i small{font-size:13px;line-height:1.6}
-#l .r2{align-items:center}
-#l .ac{gap:8px}
-#l .ac a,#l .ac button{width:42px;height:42px}
-nav{left:5px;right:5px;bottom:5px;border:1px solid #242b38;border-radius:30px;background:rgba(4,8,15,.96)}
-@media(max-width:390px){.hero h1{font-size:27px}.hero small{font-size:8px;letter-spacing:1.4px}.hero svg:first-child{max-width:54px}.hero .hh{max-width:70px}#l .b{min-width:58px;height:58px;font-size:24px}#l .i>b{font-size:17px}#l .ac a,#l .ac button{width:34px;height:34px}}
+.hero .hh{margin-left:auto;opacity:.9;max-width:52px;margin-top:6px}
 .w{padding:14px}
 .sec{display:flex;justify-content:space-between;align-items:flex-end;margin:4px 2px 14px}
 .sec b{font-size:26px;font-weight:800;display:block;border-bottom:3px solid var(--r);padding-bottom:2px;box-shadow:0 6px 12px -8px var(--r)}
@@ -98,6 +85,9 @@ const $=s=>document.querySelector(s),A=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const G=['A+','A-','B+','B-','O+','O-','AB+','AB-'];
 const opts=(sel)=>G.map(g=>`<option ${g===sel?'selected':''}>${g}</option>`).join('');
+const DIST=["ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "নরসিংদী", "মানিকগঞ্জ", "মুন্সিগঞ্জ", "কিশোরগঞ্জ", "টাঙ্গাইল", "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "রাজবাড়ী", "শরীয়তপুর", "চট্টগ্রাম", "কক্সবাজার", "কুমিল্লা", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "ফেনী", "নোয়াখালী", "লক্ষ্মীপুর", "খাগড়াছড়ি", "রাঙ্গামাটি", "বান্দরবান", "রাজশাহী", "বগুড়া", "জয়পুরহাট", "নওগাঁ", "নাটোর", "চাঁপাইনবাবগঞ্জ", "পাবনা", "সিরাজগঞ্জ", "খুলনা", "বাগেরহাট", "সাতক্ষীরা", "যশোর", "ঝিনাইদহ", "মাগুরা", "নড়াইল", "কুষ্টিয়া", "চুয়াডাঙ্গা", "মেহেরপুর", "বরিশাল", "ভোলা", "পটুয়াখালী", "পিরোজপুর", "বরগুনা", "ঝালকাঠি", "সিলেট", "মৌলভীবাজার", "হবিগঞ্জ", "সুনামগঞ্জ", "রংপুর", "দিনাজপুর", "কুড়িগ্রাম", "গাইবান্ধা", "নীলফামারী", "লালমনিরহাট", "পঞ্চগড়", "ঠাকুরগাঁও", "ময়মনসিংহ", "জামালপুর", "নেত্রকোণা", "শেরপুর"];
+const dopts=(sel,ph)=>(ph?'<option value="">জেলা নির্বাচন করুন</option>':'')+DIST.map(d=>`<option ${d===sel?'selected':''}>${d}</option>`).join('');
+let DST='';
 let U,ME,USERS=[],URG=[],CHATS=[],tab='home',flt='',q='',inChat=false,CID,unsub;
 const ok=u=>u.avail&&(!u.last||(Date.now()-new Date(u.last))/864e5>=120);
 
@@ -125,14 +115,15 @@ A.innerHTML=`<header>🩸 ${n?'আবার ঢুকুন':'রক্তদা
 <div id="ib">${banner()}</div>
 ${n?'':'<input name="name" placeholder="আপনার নাম" required>'}
 <input name="phone" placeholder="মোবাইল নাম্বার (01XXXXXXXXX)" inputmode="tel" required>
-${n?'':`<select name="group">${opts()}</select><input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required><label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">`}
+${n?'':`<select name="group">${opts()}</select><select name="dist" required>${dopts('',1)}</select><input name="area" placeholder="এলাকা (যেমন: বানিবহ)" required><label>সর্বশেষ রক্ত দিয়েছেন (না দিলে খালি রাখুন)</label><input name="last" type="date">`}
 <input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" placeholder="${n?'আপনার পিন':'৪-৬ ডিজিটের গোপন পিন দিন (মনে রাখুন)'}" required>
 ${n?'':'<label class="lb"><input type="checkbox" name="ok"> আমার নাম ও নাম্বার সবাইকে দেখানোর অনুমতি দিচ্ছি</label>'}
 <button class="p">${n?'ঢুকুন':'যোগ দিন'}</button>
 <p class="c r" style="padding:14px" onclick="regView('${n?'':'in'}')">${n?'নতুন রেজিস্ট্রেশন করুন':'আগে রেজিস্ট্রেশন করেছেন? পিন দিয়ে ঢুকুন'}</p></form>`}
 async function reg(e){e.preventDefault();const f=e.target;
   if(!f.ok.checked)return alert('নাম্বার দেখানোর অনুমতি টিক দিন');
-  const d={name:f.name.value.trim(),phone:f.phone.value.trim(),group:f.group.value,area:f.area.value.trim(),last:f.last.value||'',avail:true,ts:Date.now(),pin:true},pin=f.pin.value;
+  const d={name:f.name.value.trim(),phone:f.phone.value.trim(),group:f.group.value,dist:f.dist.value,area:f.area.value.trim(),last:f.last.value||'',avail:true,ts:Date.now(),pin:true},pin=f.pin.value;
+  if(!d.dist)return alert('জেলা বেছে নিন');
   if(!/^01\d{9}$/.test(d.phone))return alert('সঠিক ১১ ডিজিটের নাম্বার দিন');
   if(!/^\d{4,6}$/.test(pin))return alert('পিন ৪-৬ ডিজিটের সংখ্যা হতে হবে');
   try{const cid=await H(d.phone+':'+pin),cs=await db.collection('creds').doc(cid).get();
@@ -156,7 +147,7 @@ async function setPin(){const p=$('#pn').value;if(!/^\d{4,6}$/.test(p))return al
     await db.collection('creds').doc(cid).set({uid:U.uid,phone:ME.phone});await db.collection('users').doc(U.uid).update({pin:true});ME.pin=true;render();alert('পিন সেট হয়েছে। মনে রাখুন।')}catch(x){alert('সমস্যা: '+x.message)}}
 async function delU(ph){if(!confirm('এই নাম্বারের সব প্রোফাইল মুছবেন?'))return;const s=await db.collection('users').where('phone','==',ph).get();await Promise.all(s.docs.map(d=>d.ref.delete()))}
 
-function start(){
+function start(){if(!ME.dist){ME.dist='রাজবাড়ী';db.collection('users').doc(U.uid).update({dist:'রাজবাড়ী'}).catch(()=>{})}DST=ME.dist;
   db.collection('users').onSnapshot(s=>{USERS=dd(s.docs.map(d=>({id:d.id,...d.data()})));if(!inChat)render()});
   db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
   db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
@@ -175,18 +166,21 @@ ms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
 del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'};
 const card=u=>`<div class="card"><div class="b">${esc(u.group)}</div><div class="i"><b>${esc(u.name)}</b><small>📍 ${esc(u.area)} &nbsp;|&nbsp; 🩸 শেষ রক্তদান: ${ago(u.last)}</small><div class="r2"><div>${ok(u)?'<span class="st g">দিতে পারবেন</span>':'<span class="st r">এখন পারবেন না</span>'}<small class="ph">📞 ${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}" aria-label="কল">${IC.ph}</a><a href="https://wa.me/88${esc(u.phone)}" aria-label="হোয়াটসঅ্যাপ">${IC.wa}</a>${u.id!==U.uid?`<button class="bl" onclick="pm('${u.id}')" aria-label="চ্যাট">${IC.ms}</button>`:''}${adm()?`<button class="rd" onclick="delU('${esc(u.phone)}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div></div></div>`;
 function list(){const t=q.toLowerCase();
-  const l=USERS.filter(u=>(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
-  return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${l.length} জন দাতা</p>`+l.map(card).join(''):'<p class="c">কোনো দাতা পাওয়া যায়নি। অন্য গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
+  const l=USERS.filter(u=>(DST==='*'||(u.dist||'রাজবাড়ী')===DST)&&(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
+  return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${DST&&DST!=='*'?esc(DST)+' জেলায় ':''}${bn(l.length)} জন দাতা</p>`+l.map(card).join(''):'<p class="c">এই জেলায় কোনো দাতা পাওয়া যায়নি। অন্য জেলা, গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
 function upd(){$('#l').innerHTML=list()}
-const HERO=`<div class="hero"><svg width="74" height="86" viewBox="0 0 74 86"><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a6e"/><stop offset="1" stop-color="#b3122b"/></linearGradient></defs><path d="M37 4C28 22 8 38 8 56a29 29 0 0 0 58 0C66 38 46 22 37 4z" fill="url(#dg)"/><path d="M14 52h14l6-14 10 26 6-12h10" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><h1>Blood <span>Donor</span></h1><small>GIVE BLOOD • SAVE LIVES</small></div><svg class="hh" viewBox="0 0 100 150" aria-label="রক্তের ব্যাগ"><defs><linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff8b9a"/><stop offset=".45" stop-color="#e51e3d"/><stop offset="1" stop-color="#79091b"/></linearGradient></defs><path d="M38 5h24v10H38zM28 15h44q7 0 7 8v72q0 9-9 9H30q-9 0-9-9V23q0-8 7-8z" fill="url(#bag)" stroke="#ffb2bb" stroke-width="3"/><rect x="29" y="35" width="42" height="43" rx="5" fill="#fff5f6"/><path d="M50 43c-5 8-8 11-8 15a8 8 0 0 0 16 0c0-4-3-7-8-15z" fill="#e5233f"/><path d="M50 59v12M44 65h12" stroke="#e5233f" stroke-width="3"/><path d="M45 104v10c0 7 10 7 10 14v15" fill="none" stroke="#ff2d4b" stroke-width="5" stroke-linecap="round"/><path d="M55 143q0 5 5 5" fill="none" stroke="#ff8b9a" stroke-width="3" stroke-linecap="round"/></svg></div>`;
+const HERO=`<div class="hero"><svg width="74" height="86" viewBox="0 0 74 86"><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a6e"/><stop offset="1" stop-color="#b3122b"/></linearGradient></defs><path d="M37 4C28 22 8 38 8 56a29 29 0 0 0 58 0C66 38 46 22 37 4z" fill="url(#dg)"/><path d="M14 52h14l6-14 10 26 6-12h10" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><h1>Blood <span>Donor</span></h1><small>GIVE BLOOD • SAVE LIVES</small></div><svg class="hh" width="64" height="58" viewBox="0 0 64 58"><path d="M32 54C8 36 4 22 4 15A13 13 0 0 1 32 9a13 13 0 0 1 28 6c0 7-4 21-28 39z" fill="none" stroke="#ff2d4b" stroke-width="3"/><path d="M32 22c-5 8-8 11-8 15a8 8 0 0 0 16 0c0-4-3-7-8-15z" fill="#ff2d4b"/></svg></div>`;
+function distPrompt(){A.innerHTML=`<header>📍 আপনার জেলা</header><div class="w"><p style="margin-bottom:14px;color:var(--m)">এখন থেকে দাতাদের তালিকা জেলা অনুযায়ী দেখাবে। আপনার জেলা বেছে নিন।</p><select id="ds">${dopts('',1)}</select><button class="p" onclick="saveDist()">সংরক্ষণ করুন</button></div>`}
+async function saveDist(){const v=$('#ds').value;if(!v)return alert('জেলা বেছে নিন');try{await db.collection('users').doc(U.uid).update({dist:v});ME.dist=v;DST=v;render()}catch(e){alert('সমস্যা: '+e.message)}}
 function render(){
   let c='';
-  if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><input placeholder="🔍 নাম, এলাকা বা নাম্বার" value="${esc(q)}" oninput="q=this.value;upd()"><select onchange="flt=this.value;upd()"><option value="">সব ব্লাড গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select><div id="l">${list()}</div>`;
+  if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><select onchange="DST=this.value;upd()">${dopts(DST)}${adm()?`<option value="*" ${DST==='*'?'selected':''}>সব জেলা (অ্যাডমিন)</option>`:''}</select><input placeholder="🔍 নাম, এলাকা বা নাম্বার" value="${esc(q)}" oninput="q=this.value;upd()"><select onchange="flt=this.value;upd()"><option value="">সব ব্লাড গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select><div id="l">${list()}</div>`;
   if(tab==='urg')c=`<form onsubmit="post(event)"><select name="group">${opts()}</select><input name="place" placeholder="হাসপাতাল / এলাকা" required><input name="phone" value="${esc(ME.phone)}" placeholder="যোগাযোগ নাম্বার" required><input name="note" placeholder="কী লাগবে? (যেমন: ২ ব্যাগ, আজ রাতে)"><button class="p">🚨 জরুরি পোস্ট করুন</button></form>`+
     (URG.length?URG.map(p=>`<div class="card u"><div class="b">${esc(p.group)}</div><div class="i"><b>${esc(p.place)}</b><small>${esc(p.note)}</small><small>${esc(p.name)} • ${new Date(p.ts).toLocaleDateString('bn-BD')}</small></div><div class="ac"><a href="tel:${esc(p.phone)}">📞</a>${(p.uid===U.uid||adm())?`<button onclick="del('urgent','${p.id}')">🗑</button>`:''}</div></div>`).join(''):'<p class="c">এখন কোনো জরুরি অনুরোধ নেই।</p>');
   if(tab==='chat')c=`<div class="card" onclick="openChat('all','সবার গ্রুপ')"><div class="b">👥</div><div class="i"><b>সবার গ্রুপ</b><small>সব দাতা ও গ্রহীতা একসাথে</small></div></div>`+
     CHATS.map(x=>{const o=Object.keys(x.names).find(k=>k!==U.uid);return `<div class="card" onclick="openChat('${x.id}','${esc(x.names[o]||'চ্যাট')}')"><div class="b">✉️</div><div class="i"><b>${esc(x.names[o]||'চ্যাট')}</b><small>${esc(x.last||'')}</small></div></div>`}).join('');
-  if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.area)}</small></div></div>
+  if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.dist)}, ${esc(ME.area)}</small></div></div>
+    <label>নাম</label><input id="en" value="${esc(ME.name)}"><label>জেলা</label><select id="ed">${dopts(ME.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(ME.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(ME.group)}</select>
     <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
     <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
@@ -194,7 +188,9 @@ function render(){
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
   A.innerHTML=`${tab==='home'?HERO:'<header>🩸 ব্লাড ডোনার</header>'}<div class="w">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()"><span>${i}</span>${v}</button>`).join('')}</nav>`}
 
-async function saveMe(){const d={avail:$('#av').checked,last:$('#la').value||''};await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);alert('সংরক্ষণ হয়েছে')}
+async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||''};
+  if(!d.name||!d.area||!d.dist)return alert('নাম, জেলা ও এলাকা খালি রাখা যাবে না');
+  try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);DST=d.dist;render();alert('সংরক্ষণ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
 async function post(e){e.preventDefault();const f=e.target;
   await db.collection('urgent').add({group:f.group.value,place:f.place.value.trim(),phone:f.phone.value.trim(),note:f.note.value.trim(),name:ME.name,uid:U.uid,ts:Date.now()});f.reset()}
 async function del(c,id){if(confirm('মুছে ফেলবেন?'))await db.collection(c).doc(id).delete()}
