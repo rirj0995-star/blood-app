@@ -117,7 +117,7 @@ auth.onAuthStateChanged(async u=>{
   if(s.exists){ME=s.data();start()}else regView('')});
 
 const H=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('blood-app:'+s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-const dd=a=>{const m={};a.forEach(u=>{if(!m[u.phone]||(u.ts||0)>(m[u.phone].ts||0))m[u.phone]=u});return Object.values(m)};
+const dd=a=>{const m={};a.forEach(u=>{const c=m[u.phone],mine=!!U&&u.id===U.uid,cm=!!c&&!!U&&c.id===U.uid;if(!c||(mine&&!cm)||(!mine&&!cm&&(u.ts||0)>(c.ts||0)))m[u.phone]=u});return Object.values(m)};
 let DP=null;
 const UA=navigator.userAgent,STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone,WV=/; wv\)/.test(UA),INAPP=/FBAN|FBAV|FB_IAB|Instagram|Messenger/i.test(UA);
 function banner(){
@@ -192,9 +192,9 @@ async function pickPhoto(inp){const f=inp.files&&inp.files[0];if(!f)return;if(!/
   try{const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)});
     const S=128,c=document.createElement('canvas');c.width=c.height=S;const m=Math.min(img.width,img.height);
     c.getContext('2d').drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);URL.revokeObjectURL(img.src);
-    const d=c.toDataURL('image/jpeg',0.72);await db.collection('users').doc(U.uid).update({photo:d});ME.photo=d;render();alert('ছবি সংরক্ষিত হয়েছে')}
+    const d=c.toDataURL('image/jpeg',0.72);const t=Date.now();await db.collection('users').doc(U.uid).update({photo:d,ts:t});ME.photo=d;ME.ts=t;render();alert('ছবি সংরক্ষিত হয়েছে')}
   catch(e){alert('ছবি দেওয়া যায়নি: '+e.message)}}
-async function delPhoto(){if(!confirm('আপনার ছবি মুছবেন?'))return;try{await db.collection('users').doc(U.uid).update({photo:''});ME.photo='';render()}catch(e){alert('সমস্যা: '+e.message)}}
+async function delPhoto(){if(!confirm('আপনার ছবি মুছবেন?'))return;try{const t=Date.now();await db.collection('users').doc(U.uid).update({photo:'',ts:t});ME.photo='';ME.ts=t;render()}catch(e){alert('সমস্যা: '+e.message)}}
 function zoomPhoto(id){const u=USERS.find(x=>x.id===id),p=u&&safePhoto(u.photo);if(!p||$('#al'))return;const e=document.createElement('div');e.id='al';
   e.style.cssText='position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px';
   e.innerHTML=`<img src="${p}" style="width:240px;height:240px;border-radius:50%;object-fit:cover;border:3px solid #ff2d4b;box-shadow:0 0 28px rgba(255,45,75,.6)"><b style="font-size:20px">${esc(u.name)}</b><button class="p" style="max-width:260px;flex:none" onclick="closeAlert()">✕ বন্ধ করুন</button>${adm()?`<button style="max-width:260px;flex:none" onclick="admDelPhoto('${u.id}')">🗑 ছবি মুছুন (অ্যাডমিন)</button>`:''}`;document.body.appendChild(e)}
@@ -231,7 +231,7 @@ function render(){
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
   A.innerHTML=`${tab==='home'?HERO:'<header>🩸 ব্লাড ডোনার</header>'}<div class="w">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()"><span>${i}</span>${v}</button>`).join('')}</nav>`}
 
-async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||''};
+async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||'',ts:Date.now()};
   if(!d.name||!d.area||!d.dist)return alert('নাম, জেলা ও এলাকা খালি রাখা যাবে না');
   try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);DST=d.dist;render();alert('সংরক্ষণ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
 async function post(e){e.preventDefault();const f=e.target;
