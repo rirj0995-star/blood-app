@@ -111,6 +111,14 @@ nav button.on:after{content:'';width:34px;height:3px;border-radius:3px;backgroun
 .onl b{color:#fff;font-size:14px}
 .onl i{width:9px;height:9px;border-radius:50%;background:#33e08a;box-shadow:0 0 0 0 rgba(51,224,138,.7);animation:ping 1.6s ease-out infinite}
 @keyframes ping{0%{box-shadow:0 0 0 0 rgba(51,224,138,.7)}80%,100%{box-shadow:0 0 0 9px rgba(51,224,138,0)}}
+.rv{display:inline-flex;align-items:center;gap:4px;margin:0 0 0 8px;width:auto;min-height:0;padding:3px 12px;border-radius:99px;font-size:13px;font-weight:700;color:#ffd24a;background:rgba(255,210,74,.12);border:1px solid rgba(255,210,74,.5);vertical-align:middle}.rv em{font-style:normal;color:#e9d9a8;font-weight:400}
+#rvw{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.78);display:flex;align-items:flex-end}
+.rvp{width:100%;max-height:92vh;max-height:92dvh;overflow:auto;background:var(--card);border-radius:22px 22px 0 0;border-top:1px solid var(--line);padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+.stx{color:#ffd24a;letter-spacing:2px}
+.rvi{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px;background:var(--chip)}
+.ss{display:flex;gap:8px;margin:10px 0}.ss button{width:48px;height:48px;min-height:0;padding:0;margin:0;font-size:28px;line-height:1;border-radius:12px;color:#5b6475;background:var(--chip)}
+.ss button.on{color:#ffd24a;border-color:#ffd24a;box-shadow:0 0 10px rgba(255,210,74,.45)}
+.rvd{width:auto;min-height:0;margin:8px 0 0;padding:4px 12px;font-size:13px;border-radius:10px;color:var(--rt)}
 @media(prefers-reduced-motion:reduce){.onl i{animation:none}.fin,#l.ent .card,#l .card.sk,.hero>svg,.hero .hh{animation:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.splash svg,.dots span{animation:none}.ecg{animation:none;stroke-dashoffset:0}}
 </style></head><body>
@@ -133,7 +141,7 @@ const opts=(sel)=>G.map(g=>`<option ${g===sel?'selected':''}>${g}</option>`).joi
 const DIST=["ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "নরসিংদী", "মানিকগঞ্জ", "মুন্সিগঞ্জ", "কিশোরগঞ্জ", "টাঙ্গাইল", "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "রাজবাড়ী", "শরীয়তপুর", "চট্টগ্রাম", "কক্সবাজার", "কুমিল্লা", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "ফেনী", "নোয়াখালী", "লক্ষ্মীপুর", "খাগড়াছড়ি", "রাঙ্গামাটি", "বান্দরবান", "রাজশাহী", "বগুড়া", "জয়পুরহাট", "নওগাঁ", "নাটোর", "চাঁপাইনবাবগঞ্জ", "পাবনা", "সিরাজগঞ্জ", "খুলনা", "বাগেরহাট", "সাতক্ষীরা", "যশোর", "ঝিনাইদহ", "মাগুরা", "নড়াইল", "কুষ্টিয়া", "চুয়াডাঙ্গা", "মেহেরপুর", "বরিশাল", "ভোলা", "পটুয়াখালী", "পিরোজপুর", "বরগুনা", "ঝালকাঠি", "সিলেট", "মৌলভীবাজার", "হবিগঞ্জ", "সুনামগঞ্জ", "রংপুর", "দিনাজপুর", "কুড়িগ্রাম", "গাইবান্ধা", "নীলফামারী", "লালমনিরহাট", "পঞ্চগড়", "ঠাকুরগাঁও", "ময়মনসিংহ", "জামালপুর", "নেত্রকোণা", "শেরপুর"];
 const dopts=(sel,ph)=>(ph?'<option value="">জেলা নির্বাচন করুন</option>':'')+DIST.map(d=>`<option ${d===sel?'selected':''}>${d}</option>`).join('');
 let DST='';
-let ANIM=true,ANIMT=0,LOADED=false,SD={},ST={},ONL=0,PT=0;
+let ANIM=true,ANIMT=0,LOADED=false,SD={},ST={},ONL=0,PT=0,REV=[],RAG={},RS=0,RVP='';
 const APPURL=/^https?:/.test(location.href)?location.origin+location.pathname:'https://rirj0995-star.github.io/blood-app/blood-donor-app.html';
 let U,ME,USERS=[],URG=[],CHATS=[],tab='home',flt='',q='',inChat=false,CID,unsub;
 const ok=u=>u.avail&&(!u.last||(Date.now()-new Date(u.last))/864e5>=120);
@@ -198,6 +206,7 @@ function start(){if(!ME.dist){ME.dist='রাজবাড়ী';db.collection('
   db.collection('users').onSnapshot(s=>{USERS=dd(s.docs.map(d=>({id:d.id,...d.data()})));LOADED=true;if(!inChat)render()});
   db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
   db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
+  db.collection('reviews').onSnapshot(q=>{REV=q.docs.map(d=>({id:d.id,...d.data()}));buildAg();if(!inChat)render();rvRefresh()},()=>{});
   db.collection('calls').where('to','==',U.uid).where('status','==','ringing').onSnapshot(q=>q.docChanges().forEach(c=>{
     if(c.type==='added'){const d=c.doc.data();if(Date.now()-d.ts<60000&&!CALL){CALL=c.doc.id;RING=c.doc.id;ring(c.doc.id,d)}}
     if(c.type==='removed'&&RING===c.doc.id){RING=null;finish('কল শেষ হয়েছে')}}));
@@ -226,7 +235,7 @@ function zoomPhoto(id){const u=USERS.find(x=>x.id===id),p=u&&safePhoto(u.photo);
   e.style.cssText='position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px';
   e.innerHTML=`<img src="${p}" style="width:240px;height:240px;border-radius:50%;object-fit:cover;border:3px solid #ff2d4b;box-shadow:0 0 28px rgba(255,45,75,.6)"><b style="font-size:20px">${esc(u.name)}</b><button class="p" style="max-width:260px;flex:none" onclick="closeAlert()">✕ বন্ধ করুন</button>${adm()?`<button style="max-width:260px;flex:none" onclick="admDelPhoto('${u.id}')">🗑 ছবি মুছুন (অ্যাডমিন)</button>`:''}`;document.body.appendChild(e)}
 async function admDelPhoto(id){if(!confirm('এই ছবিটা মুছবেন?'))return;try{await db.collection('users').doc(id).update({photo:''});closeAlert()}catch(e){alert('সমস্যা: '+e.message)}}
-const card=u=>`<div class="card">${bag(u.group)}<div class="i"><div class="nm">${avatar(u)}<b>${esc(u.name)}</b></div><small>📍 ${esc(u.area)} &nbsp;|&nbsp; 🩸 শেষ রক্তদান: ${ago(u.last)}</small><div class="r2"><div>${ok(u)?'<span class="st g">দিতে পারবেন</span>':'<span class="st r">এখন পারবেন না</span>'}<small class="ph">📞 ${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}" aria-label="কল">${IC.ph}</a><a href="https://wa.me/88${esc(u.phone)}" aria-label="হোয়াটসঅ্যাপ">${IC.wa}</a>${u.id!==U.uid?`<button class="bl" onclick="pm('${u.id}')" aria-label="চ্যাট">${IC.ms}</button>`:''}${adm()?`<button class="rd" onclick="delU('${esc(u.phone)}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div></div></div>`;
+const card=u=>`<div class="card">${bag(u.group)}<div class="i"><div class="nm">${avatar(u)}<b>${esc(u.name)}</b></div><small>📍 ${esc(u.area)} &nbsp;|&nbsp; 🩸 শেষ রক্তদান: ${ago(u.last)}</small><div class="r2"><div>${ok(u)?'<span class="st g">দিতে পারবেন</span>':'<span class="st r">এখন পারবেন না</span>'}${rchip(u.phone)}<small class="ph">📞 ${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}" aria-label="কল">${IC.ph}</a><a href="https://wa.me/88${esc(u.phone)}" aria-label="হোয়াটসঅ্যাপ">${IC.wa}</a>${u.id!==U.uid?`<button class="bl" onclick="pm('${u.id}')" aria-label="চ্যাট">${IC.ms}</button>`:''}${adm()?`<button class="rd" onclick="delU('${esc(u.phone)}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div></div></div>`;
 function list(){if(!LOADED)return '<div class="card sk"></div><div class="card sk"></div><div class="card sk"></div>';const t=q.toLowerCase();
   const l=USERS.filter(u=>(DST==='*'||(u.dist||'রাজবাড়ী')===DST)&&(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
   return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${DST&&DST!=='*'?esc(DST)+' জেলায় ':''}${bn(l.length)} জন দাতা</p>`+l.map(card).join(''):'<p class="c">এই জেলায় কোনো দাতা পাওয়া যায়নি। অন্য জেলা, গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
@@ -269,6 +278,22 @@ async function countOnline(){if(!U||document.visibilityState!=='visible')return;
   const first=!ONL;ONL=Math.max(1,n);if(first&&tab==='home'&&!inChat)render();else stats()}
 function startPresence(){if(PT)return;beat();setTimeout(countOnline,1500);PT=setInterval(()=>{beat();countOnline()},120000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){beat();countOnline()}})}
+// ===== স্টার ও রিভিউ =====
+const starStr=n=>{n=Math.max(0,Math.min(5,n|0));return '★'.repeat(n)+'☆'.repeat(5-n)};
+function buildAg(){RAG={};REV.forEach(r=>{const x=r.stars|0;if(x<1||x>5)return;const a=RAG[r.phone]||(RAG[r.phone]={sum:0,n:0});a.sum+=x;a.n++})}
+function rchip(ph,self){const a=RAG[ph];return `<button class="rv" data-p="${esc(ph)}" onclick="openReviews(this.dataset.p)">${a?'⭐ '+bn((a.sum/a.n).toFixed(1))+' <em>('+bn(a.n)+')</em>':(self?'☆ এখনো রিভিউ নেই':'☆ রিভিউ দিন')}</button>`}
+function closeRv(){const e=$('#rvw');if(e)e.remove();RVP=''}
+function setRS(n){RS=n;document.querySelectorAll('#rvs button').forEach((b,i)=>b.classList.toggle('on',i<n))}
+function rvRefresh(){const h=$('#rvh'),L=$('#rvl');if(!h||!L)return;const ph=RVP,a=RAG[ph],l=REV.filter(r=>r.phone===ph).sort((x,y)=>(y.ts||0)-(x.ts||0));
+  h.innerHTML=a?`<div style="font-size:36px;font-weight:800;color:#ffd24a;line-height:1.1">${bn((a.sum/a.n).toFixed(1))}</div><div class="stx" style="font-size:22px">${starStr(Math.round(a.sum/a.n))}</div><small style="color:var(--m)">${bn(a.n)} জনের রিভিউ</small>`:'<small style="color:var(--m)">এখনো কোনো রিভিউ নেই। প্রথম রিভিউটি আপনি দিন।</small>';
+  L.innerHTML=l.map(r=>`<div class="rvi"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${esc(r.fromName)}</b><span class="stx">${starStr(r.stars)}</span></div><small style="color:var(--m)">${r.ts?new Date(r.ts).toLocaleDateString('bn-BD'):''}</small>${r.text?`<p style="margin-top:6px;word-break:break-word">${esc(r.text)}</p>`:''}${(r.from===U.uid||adm())?`<button class="rvd" data-i="${esc(r.id)}" onclick="delRv(this.dataset.i)">🗑 মুছুন</button>`:''}</div>`).join('')}
+function openReviews(ph){if(!ph)return;closeRv();RVP=ph;const u=USERS.find(x=>x.phone===ph)||(ph===ME.phone?ME:{name:''}),self=ph===ME.phone,mine=REV.find(r=>r.id===ph+'_'+U.uid);RS=mine?(mine.stars|0):0;
+  const e=document.createElement('div');e.id='rvw';e.onclick=ev=>{if(ev.target===e)closeRv()};
+  e.innerHTML=`<div class="rvp"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px"><b style="font-size:19px">⭐ ${esc(u.name||'দাতা')} এর রিভিউ</b><button onclick="closeRv()" style="width:44px;min-height:0;margin:0;padding:8px;flex:none" aria-label="বন্ধ">✕</button></div><div id="rvh" style="text-align:center;margin-bottom:14px"></div>${self?'<p class="c" style="padding:8px">নিজেকে রিভিউ দেওয়া যায় না।</p>':`<div class="rvi" style="background:var(--card)"><b>${mine?'আপনার রিভিউ বদলান':'আপনার রিভিউ দিন'}</b><div class="ss" id="rvs">${[1,2,3,4,5].map(n=>`<button onclick="setRS(${n})" class="${n<=RS?'on':''}" aria-label="${n} তারা">★</button>`).join('')}</div><textarea id="rvt" maxlength="300" rows="3" placeholder="আপনার অভিজ্ঞতা লিখুন (সর্বোচ্চ ৩০০ অক্ষর)">${esc(mine?mine.text:'')}</textarea><small style="display:block;color:var(--m);margin:-4px 0 10px">সত্য ও ভদ্রভাবে লিখুন। মিথ্যা বা অপমানজনক রিভিউ অ্যাডমিন মুছে দিতে পারেন।</small><button class="p" style="margin:0" data-p="${esc(ph)}" onclick="sendRv(this.dataset.p)">${mine?'আপডেট করুন':'জমা দিন'}</button></div>`}<div id="rvl"></div></div>`;
+  document.body.appendChild(e);rvRefresh()}
+async function sendRv(ph){if(!RS)return alert('১ থেকে ৫ তারা বেছে নিন');const text=($('#rvt').value||'').trim().slice(0,300);
+  try{await db.collection('reviews').doc(ph+'_'+U.uid).set({phone:ph,from:U.uid,fromName:ME.name,stars:RS,text:text,ts:Date.now()});alert('রিভিউ জমা হয়েছে')}catch(e){alert('রিভিউ জমা হয়নি: '+e.message)}}
+async function delRv(id){if(!confirm('এই রিভিউ মুছবেন?'))return;try{await db.collection('reviews').doc(id).delete()}catch(e){alert('সমস্যা: '+e.message)}}
 function render(){
   let c='';
   if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><div class="fbar"><div class="srch"><span>🔍</span><input placeholder="নাম, এলাকা বা নাম্বার দিয়ে খুঁজুন" value="${esc(q)}" oninput="q=this.value;upd()"></div><div class="frow"><label class="sel"><small>📍 জেলা</small><select onchange="DST=this.value;upd()">${dopts(DST)}${adm()?`<option value="*" ${DST==='*'?'selected':''}>সব জেলা (অ্যাডমিন)</option>`:''}</select></label><label class="sel"><small>🩸 ব্লাড গ্রুপ</small><select onchange="flt=this.value;upd()"><option value="">সব গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select></label></div></div><div id="l" class="${ANIM?'ent':''}">${list()}</div>`;
@@ -277,6 +302,7 @@ function render(){
   if(tab==='chat')c=`<div class="card" onclick="openChat('all','সবার গ্রুপ')"><div class="b">👥</div><div class="i"><b>সবার গ্রুপ</b><small>সব দাতা ও গ্রহীতা একসাথে</small></div></div>`+
     CHATS.map(x=>{const o=Object.keys(x.names).find(k=>k!==U.uid);return `<div class="card" onclick="openChat('${x.id}','${esc(x.names[o]||'চ্যাট')}')"><div class="b">✉️</div><div class="i"><b>${esc(x.names[o]||'চ্যাট')}</b><small>${esc(x.last||'')}</small></div></div>`}).join('');
   if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.dist)}, ${esc(ME.area)}</small></div></div>
+    <div style="margin:-2px 0 12px">${rchip(ME.phone,1)}</div>
     <div class="card" style="flex-direction:column;align-items:center;gap:10px"><div>${avatar({name:ME.name,photo:ME.photo},1)}</div><input type="file" id="pf" accept="image/*" hidden onchange="pickPhoto(this)"><div class="row" style="width:100%"><button class="p" style="margin:0" onclick="$('#pf').click()">📷 ${ME.photo?'ছবি বদলান':'ছবি দিন'}</button>${ME.photo?'<button style="margin:0" onclick="delPhoto()">মুছুন</button>':''}</div><small style="color:var(--m);text-align:center">ছবি দিলে সব ব্যবহারকারী আপনার ছবি দেখতে পাবে</small></div>
     <label>নাম</label><input id="en" value="${esc(ME.name)}"><label>জেলা</label><select id="ed">${dopts(ME.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(ME.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(ME.group)}</select>
     <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
