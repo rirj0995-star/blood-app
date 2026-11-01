@@ -132,6 +132,7 @@ small.tm{color:#ffd24a!important;font-weight:700}
 .fc .fi{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:var(--chip);flex:none}
 details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}summary{font-weight:700;font-size:16px;cursor:pointer}
 details ul,details p{margin:10px 0 2px;color:#d3d8e2;font-size:14.5px;line-height:1.7}details ul{padding-left:20px}details select,details input{margin-top:8px}
+.mrow{display:flex;gap:10px;margin:0 0 12px}
 @media(prefers-reduced-motion:reduce){.slogo{animation:none}.onl i{animation:none}.fin,#l.ent .card,#l .card.sk,.hero>svg,.hero .hh{animation:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.splash svg,.dots span{animation:none}.ecg{animation:none;stroke-dashoffset:0}}
 </style></head><body>
@@ -379,7 +380,28 @@ function saveCard(){$('#cdc').toBlob(b=>{const a=document.createElement('a');a.h
 function shareCard(){$('#cdc').toBlob(async b=>{const f=new File([b],'blood-donor-card.png',{type:'image/png'}),t='আমি রক্তদাতা। রক্তের গ্রুপ '+ME.group+'। রক্ত লাগলে "ব্লাড ডোনার" অ্যাপে সরাসরি দাতা খুঁজুন:\n'+APPURL;
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t});return}}catch(e){if(e&&e.name==='AbortError')return}
   saveCard();alert('আপনার ফোনে সরাসরি শেয়ার হচ্ছে না। ছবিটা সংরক্ষণ হয়েছে, এবার ফেসবুকে নিজে পোস্ট করুন।')},'image/png')}
-function render(){
+// ===== আমি ট্যাব: দেখা ও এডিট আলাদা =====
+let EDIT=false,DRAFT=null;
+function grabDraft(){if(!EDIT||!$('#en'))return;DRAFT={name:$('#en').value,dist:$('#ed').value,area:$('#ea').value,group:$('#eg').value,times:$('#et').value,avail:$('#av').checked,last:$('#la').value}}
+function startEdit(){EDIT=true;DRAFT=null;render();window.scrollTo(0,0)}
+function cancelEdit(){EDIT=false;DRAFT=null;render();window.scrollTo(0,0)}
+function meTab(){return EDIT?meEdit():meView()}
+function meView(){const a=ok(ME);
+  return `<div class="card" style="flex-direction:column;align-items:center;gap:8px;text-align:center;padding:18px 14px">${avatar({name:ME.name,photo:ME.photo},1)}<b style="font-size:23px">${esc(ME.name)}</b><small style="color:var(--m);line-height:1.7">📍 ${esc(ME.dist)}, ${esc(ME.area)}<br>📞 ${esc(ME.phone)}</small><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><span class="st ${a?'g':'r'}">${a?'এখন দিতে পারবেন':'এখন পারবেন না'}</span>${rchip(ME.phone,1)}</div><button class="p" style="margin:6px 0 0" onclick="startEdit()">✏️ প্রোফাইল এডিট করুন</button></div>
+    <div class="mrow"><div class="s3c"><b style="color:var(--rt)">${esc(ME.group)}</b><small>রক্তের গ্রুপ</small></div><div class="s3c"><b style="color:#ffd24a">${bn(nTimes(ME))}</b><small>বার রক্তদান</small></div><div class="s3c"><b style="color:var(--g);font-size:15px;line-height:1.8">${ago(ME.last)}</b><small>শেষ রক্তদান</small></div></div>
+    <button class="gbtn" onclick="donatedToday()">✔ আজ রক্ত দিয়েছি (সংখ্যা +১, তারিখ আজ)</button>
+    ${ME.pin?'':`<div class="card" style="flex-direction:column;align-items:stretch"><b>🔒 পিন সেট করুন</b><small style="color:var(--m)">আনইনস্টল করে আবার ঢুকতে এই পিন লাগবে</small><input id="pn" type="password" inputmode="numeric" maxlength="6" placeholder="৪-৬ ডিজিটের পিন"><button class="p" onclick="setPin()">পিন সংরক্ষণ</button></div>`}
+    <button class="p" onclick="openCard()" style="margin-bottom:10px">🪪 আমার ডোনার কার্ড তৈরি করুন</button>
+    <button class="p" onclick="shareApp()" style="margin-top:4px">📤 অ্যাপটি বন্ধুদের শেয়ার করুন</button>
+    <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`}
+function meEdit(){const d=DRAFT,v=d||{name:ME.name,dist:ME.dist,area:ME.area,group:ME.group,times:nTimes(ME),avail:ME.avail,last:ME.last||''};
+  return `<div class="seg"><button onclick="cancelEdit()">← পিছনে</button><button class="on" style="pointer-events:none">✏️ প্রোফাইল এডিট</button></div>
+    <div class="card" style="flex-direction:column;align-items:center;gap:10px">${avatar({name:v.name,photo:ME.photo},1)}<input type="file" id="pf" accept="image/*" hidden onchange="pickPhoto(this)"><div class="row" style="width:100%"><button class="p" style="margin:0" onclick="$('#pf').click()">📷 ${ME.photo?'ছবি বদলান':'ছবি দিন'}</button>${ME.photo?'<button style="margin:0" onclick="delPhoto()">মুছুন</button>':''}</div><small style="color:var(--m);text-align:center">ছবি দিলে সব ব্যবহারকারী আপনার ছবি দেখতে পাবে</small></div>
+    <label>নাম</label><input id="en" value="${esc(v.name)}"><label>জেলা</label><select id="ed">${dopts(v.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(v.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(v.group)}</select><label>এ পর্যন্ত কতবার রক্ত দিয়েছেন</label><input id="et" type="number" inputmode="numeric" min="0" max="999" value="${esc(v.times)}">
+    <label class="lb"><input type="checkbox" id="av" ${v.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
+    <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(v.last)}">
+    <div class="row"><button class="p" onclick="saveMe()">সংরক্ষণ করুন</button><button onclick="cancelEdit()">বাতিল</button></div>`}
+function render(){if(tab!=='me'&&EDIT){EDIT=false;DRAFT=null}if(tab==='me')grabDraft();
   let c='';
   if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><div class="fbar"><div class="srch"><span>🔍</span><input placeholder="নাম, এলাকা বা নাম্বার দিয়ে খুঁজুন" value="${esc(q)}" oninput="q=this.value;upd()"></div><div class="frow"><label class="sel"><small>📍 জেলা</small><select onchange="DST=this.value;upd()">${dopts(DST)}${adm()?`<option value="*" ${DST==='*'?'selected':''}>সব জেলা (অ্যাডমিন)</option>`:''}</select></label><label class="sel"><small>🩸 ব্লাড গ্রুপ</small><select onchange="flt=this.value;upd()"><option value="">সব গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select></label></div></div><div id="l" class="${ANIM?'ent':''}">${list()}</div>`;
   if(tab==='urg')c=`${dalalCard()}<form onsubmit="post(event)"><select name="group">${opts()}</select><input name="place" placeholder="হাসপাতাল / এলাকা" required><input name="phone" value="${esc(ME.phone)}" placeholder="যোগাযোগ নাম্বার" required><input name="note" placeholder="কী লাগবে? (যেমন: ২ ব্যাগ, আজ রাতে)"><button class="p">🚨 জরুরি পোস্ট করুন</button></form>`+
@@ -387,22 +409,12 @@ function render(){
   if(tab==='info')c=infoTab();
   if(tab==='chat')c=`<div class="card" onclick="openChat('all','সবার গ্রুপ')"><div class="b">👥</div><div class="i"><b>সবার গ্রুপ</b><small>সব দাতা ও গ্রহীতা একসাথে</small></div></div>`+
     CHATS.map(x=>{const o=Object.keys(x.names).find(k=>k!==U.uid);return `<div class="card" onclick="openChat('${x.id}','${esc(x.names[o]||'চ্যাট')}')"><div class="b">✉️</div><div class="i"><b>${esc(x.names[o]||'চ্যাট')}</b><small>${esc(x.last||'')}</small></div></div>`}).join('');
-  if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.dist)}, ${esc(ME.area)}</small></div></div>
-    <div style="margin:-2px 0 12px">${rchip(ME.phone,1)}</div>
-    <div class="card" style="flex-direction:column;align-items:center;gap:10px"><div>${avatar({name:ME.name,photo:ME.photo},1)}</div><input type="file" id="pf" accept="image/*" hidden onchange="pickPhoto(this)"><div class="row" style="width:100%"><button class="p" style="margin:0" onclick="$('#pf').click()">📷 ${ME.photo?'ছবি বদলান':'ছবি দিন'}</button>${ME.photo?'<button style="margin:0" onclick="delPhoto()">মুছুন</button>':''}</div><small style="color:var(--m);text-align:center">ছবি দিলে সব ব্যবহারকারী আপনার ছবি দেখতে পাবে</small></div>
-    <label>নাম</label><input id="en" value="${esc(ME.name)}"><label>জেলা</label><select id="ed">${dopts(ME.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(ME.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(ME.group)}</select><label>এ পর্যন্ত কতবার রক্ত দিয়েছেন</label><input id="et" type="number" inputmode="numeric" min="0" max="999" value="${nTimes(ME)}"><button class="gbtn" onclick="donatedToday()">✔ আজ রক্ত দিয়েছি (সংখ্যা +১, তারিখ আজ)</button>
-    <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
-    <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
-    <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
-    ${ME.pin?'':`<div class="card" style="flex-direction:column;align-items:stretch"><b>🔒 পিন সেট করুন</b><small style="color:var(--m)">আনইনস্টল করে আবার ঢুকতে এই পিন লাগবে</small><input id="pn" type="password" inputmode="numeric" maxlength="6" placeholder="৪-৬ ডিজিটের পিন"><button class="p" onclick="setPin()">পিন সংরক্ষণ</button></div>`}
-    <button class="p" onclick="openCard()" style="margin-bottom:10px">🪪 আমার ডোনার কার্ড তৈরি করুন</button>
-    <button class="p" onclick="shareApp()" style="margin-top:4px">📤 অ্যাপটি বন্ধুদের শেয়ার করুন</button>
-    <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
+  if(tab==='me')c=meTab();
   A.innerHTML=`${tab==='home'?hero()+statsHtml():'<header>🩸 ব্লাড ডোনার</header>'}<div class="w${ANIM?' fin':''}">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['info','🏥','তথ্য'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';ANIM=true;render()"><span>${i}</span>${v}</button>`).join('')}</nav>`;if(tab==='home')stats();if(ANIM&&!ANIMT&&(tab!=='home'||USERS.length))ANIMT=setTimeout(()=>{ANIM=false;ANIMT=0},900)}
 
 async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||'',times:Math.min(999,Math.max(0,Math.floor(Number($('#et').value)||0))),ts:Date.now()};
   if(!d.name||!d.area||!d.dist)return alert('নাম, জেলা ও এলাকা খালি রাখা যাবে না');
-  try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);DST=d.dist;render();alert('সংরক্ষণ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
+  try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);DST=d.dist;EDIT=false;DRAFT=null;render();window.scrollTo(0,0);alert('সংরক্ষণ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
 async function post(e){e.preventDefault();const f=e.target;
   await db.collection('urgent').add({group:f.group.value,place:f.place.value.trim(),phone:f.phone.value.trim(),note:f.note.value.trim(),name:ME.name,uid:U.uid,ts:Date.now()});f.reset()}
 async function del(c,id){if(confirm('মুছে ফেলবেন?'))await db.collection(c).doc(id).delete()}
