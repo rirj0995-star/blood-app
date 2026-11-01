@@ -122,6 +122,16 @@ nav button.on:after{content:'';width:34px;height:3px;border-radius:3px;backgroun
 .slogo{width:156px;height:156px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px rgba(255,255,255,.14);filter:drop-shadow(0 0 22px rgba(255,60,80,.75));animation:beat 1.2s ease-in-out infinite}
 small.tm{color:#ffd24a!important;font-weight:700}
 .gbtn{background:linear-gradient(135deg,#1fb871,#0e7c4a);color:#fff;border:0;font-weight:700;box-shadow:0 4px 16px rgba(31,184,113,.35)}
+.seg{display:flex;gap:8px;margin-bottom:14px}.seg button{margin:0;min-height:46px;font-weight:700;font-size:15px}.seg button.on{background:linear-gradient(135deg,var(--r),var(--r2));color:#fff;border:0}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:10px 0 12px;padding-bottom:4px}.chips button{width:auto;flex:none;min-height:40px;margin:0;padding:6px 14px;border-radius:99px;font-size:14px}.chips button.on{background:rgba(255,45,75,.2);border-color:#ff2d4b;color:#fff}
+.card.dn{opacity:.62}
+.rl{flex-basis:100%;border:1px solid rgba(51,224,138,.45);border-radius:14px;padding:10px;background:rgba(51,224,138,.07)}.rl>b{display:block;margin-bottom:8px;color:var(--g)}
+.rr{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}.rr span{flex:1;font-weight:700}.rr small{display:block;color:var(--m);font-weight:400}
+.rr a{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--g);border:1.5px solid var(--g);text-decoration:none}.rr a svg{width:18px;height:18px}
+.rsp{flex-basis:100%;text-align:center;padding:10px;border-radius:12px;font-weight:700;color:var(--g);background:rgba(51,224,138,.1)}
+.fc .fi{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:var(--chip);flex:none}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}summary{font-weight:700;font-size:16px;cursor:pointer}
+details ul,details p{margin:10px 0 2px;color:#d3d8e2;font-size:14.5px;line-height:1.7}details ul{padding-left:20px}details select,details input{margin-top:8px}
 @media(prefers-reduced-motion:reduce){.slogo{animation:none}.onl i{animation:none}.fin,#l.ent .card,#l .card.sk,.hero>svg,.hero .hh{animation:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.splash svg,.dots span{animation:none}.ecg{animation:none;stroke-dashoffset:0}}
 </style></head><body>
@@ -207,7 +217,10 @@ async function delU(ph){if(!confirm('এই নাম্বারের সব �
 
 function start(){if(!ME.dist){ME.dist='রাজবাড়ী';db.collection('users').doc(U.uid).update({dist:'রাজবাড়ী'}).catch(()=>{})}DST=ME.dist;
   db.collection('users').onSnapshot(s=>{USERS=dd(s.docs.map(d=>({id:d.id,...d.data()})));LOADED=true;if(!inChat)render()});
-  db.collection('urgent').orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
+  db.collection('urgent').where('ts','>',Date.now()-864e5).orderBy('ts','desc').limit(30).onSnapshot(s=>{URG=s.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()});
+  db.collection('responses').where('postOwner','==',U.uid).onSnapshot(q=>{RESP=q.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()},()=>{});
+  db.collection('responses').where('from','==',U.uid).onSnapshot(q=>{MYR={};q.docs.forEach(d=>{MYR[d.data().post]=1});if(!inChat)render()},()=>{});
+  db.collection('facilities').onSnapshot(q=>{FAC=q.docs.map(d=>({id:d.id,...d.data()}));if(!inChat)render()},()=>{});
   db.collection('chats').where('members','array-contains',U.uid).onSnapshot(s=>{CHATS=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts);if(!inChat)render()});
   db.collection('reviews').onSnapshot(q=>{REV=q.docs.map(d=>({id:d.id,...d.data()}));buildAg();if(!inChat)render();rvRefresh()},()=>{});
   db.collection('calls').where('to','==',U.uid).where('status','==','ringing').onSnapshot(q=>q.docChanges().forEach(c=>{
@@ -270,7 +283,7 @@ function shareUrg(id){const p=URG.find(x=>x.id===id);if(!p)return;
   doShare('🚨 জরুরি রক্ত দরকার!\nব্লাড গ্রুপ: '+p.group+'\nস্থান: '+p.place+(p.note?'\nপ্রয়োজন: '+p.note:'')+'\nযোগাযোগ: '+p.phone+'\n\n⚠️ দালাল থেকে সাবধান। সরাসরি দাতা খুঁজুন, টাকার লেনদেন হচ্ছে কিনা নিশ্চিত হয়ে নিন।\nদাতা খুঁজতে "ব্লাড ডোনার" অ্যাপ:')}
 function shareApp(){doShare('🩸 রক্ত লাগলে বা রক্ত দিতে চাইলে "ব্লাড ডোনার" অ্যাপে সরাসরি দাতা খুঁজুন। দালাল নয়, সরাসরি যোগাযোগ।')}
 // ===== হিরোর লাইভ সংখ্যা =====
-const sT=()=>{const l=USERS.filter(u=>DST==='*'||(u.dist||'রাজবাড়ী')===DST);return{s1:l.length,s2:l.filter(ok).length,s3:URG.length,onl:ONL}};
+const sT=()=>{const l=USERS.filter(u=>DST==='*'||(u.dist||'রাজবাড়ী')===DST);return{s1:l.length,s2:l.filter(ok).length,s3:urgAct().length,onl:ONL}};
 function statsHtml(){return `<div class="stats"><div class="s3c"><b id="s1" style="color:var(--rt)">${bn(SD.s1||0)}</b><small>জন দাতা</small></div><div class="s3c"><b id="s2" style="color:var(--g)">${bn(SD.s2||0)}</b><small>এখন দিতে পারবেন</small></div><div class="s3c"><b id="s3" style="color:var(--bl)">${bn(SD.s3||0)}</b><small>জরুরি অনুরোধ</small></div></div>`}
 function stats(){const T=sT(),rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
   for(const k in T){const to=T[k];
@@ -303,11 +316,75 @@ function openReviews(ph){if(!ph)return;closeRv();RVP=ph;const u=USERS.find(x=>x.
 async function sendRv(ph){if(!RS)return alert('১ থেকে ৫ তারা বেছে নিন');const text=($('#rvt').value||'').trim().slice(0,300);
   try{await db.collection('reviews').doc(ph+'_'+U.uid).set({phone:ph,from:U.uid,fromName:ME.name,stars:RS,text:text,ts:Date.now()});alert('রিভিউ জমা হয়েছে')}catch(e){alert('রিভিউ জমা হয়নি: '+e.message)}}
 async function delRv(id){if(!confirm('এই রিভিউ মুছবেন?'))return;try{await db.collection('reviews').doc(id).delete()}catch(e){alert('সমস্যা: '+e.message)}}
+// ===== জরুরি: সাড়া, পূরণ, সময় =====
+let RESP=[],MYR={},FAC=[],IT='num',FD='',FT='';
+const urgAct=()=>URG.filter(p=>!p.done&&Date.now()-p.ts<864e5);
+function agoT(t){const m=Math.floor((Date.now()-t)/60000);if(m<1)return 'এইমাত্র';if(m<60)return bn(m)+' মিনিট আগে';const h=Math.floor(m/60);if(h<24)return bn(h)+' ঘণ্টা আগে';return bn(Math.floor(h/24))+' দিন আগে'}
+function urgCard(p){const mine=p.uid===U.uid,rs=RESP.filter(r=>r.post===p.id),open=!p.done;
+  return `<div class="card u${p.done?' dn':''}"><div class="b">${esc(p.group)}</div><div class="i"><b>${esc(p.place)}</b>${p.note?`<small>${esc(p.note)}</small>`:''}<small>${esc(p.name)} • ${agoT(p.ts)}</small>${p.done?'<span class="st g" style="margin-top:6px">পূরণ হয়েছে ✔</span>':''}</div><div class="ac"><a href="tel:${esc(p.phone)}" aria-label="কল">${IC.ph}</a><button class="bl" onclick="shareUrg('${p.id}')" aria-label="শেয়ার">${IC.sh}</button>${(mine||adm())?`<button class="rd" onclick="del('urgent','${p.id}')" aria-label="মুছুন">${IC.del}</button>`:''}</div>${open&&!mine?(MYR[p.id]?'<div class="rsp">✔ আপনি সাড়া দিয়েছেন</div>':`<button class="gbtn" style="flex-basis:100%;margin:0" onclick="respond('${p.id}')">🙋 আমি দিতে পারব</button>`):''}${mine&&rs.length?`<div class="rl"><b>🙋 ${bn(rs.length)} জন সাড়া দিয়েছেন</b>${rs.map(r=>`<div class="rr"><span>${esc(r.name)}<small>${esc(r.phone)}</small></span><a href="tel:${esc(r.phone)}">${IC.ph}</a><a href="https://wa.me/88${esc(r.phone)}">${IC.wa}</a></div>`).join('')}</div>`:''}${(mine||adm())&&open?`<button style="flex-basis:100%;margin:0" onclick="markDone('${p.id}')">✔ পূরণ হয়েছে চিহ্নিত করুন</button>`:''}</div>`}
+function urgList(){const l=URG.filter(p=>Date.now()-p.ts<864e5).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||b.ts-a.ts);return l.length?l.map(urgCard).join(''):'<p class="c">এখন কোনো জরুরি অনুরোধ নেই।</p>'}
+async function respond(id){const p=URG.find(x=>x.id===id);if(!p||MYR[id])return;
+  if(!confirm('আপনার নাম ও নাম্বার অনুরোধকারী দেখতে পাবেন।'+(ok(ME)?'':'\n\n⚠️ আপনার প্রোফাইলে এখন "রক্ত দিতে পারবেন না" দেখাচ্ছে (শেষ রক্তদান থেকে ৪ মাস হয়নি)। তবুও সাড়া দেবেন?')))return;
+  try{await db.collection('responses').doc(id+'_'+U.uid).set({post:id,postOwner:p.uid,from:U.uid,name:ME.name,phone:ME.phone,ts:Date.now()});MYR[id]=1;render()}catch(e){alert('সাড়া পাঠানো যায়নি: '+e.message)}}
+async function markDone(id){if(!confirm('অনুরোধটি পূরণ হয়েছে বলে চিহ্নিত করবেন?'))return;try{await db.collection('urgent').doc(id).update({done:true,doneTs:Date.now()})}catch(e){alert('সমস্যা: '+e.message)}}
+// ===== তথ্য ট্যাব: জরুরি নাম্বার ও রক্তদানের নিয়ম =====
+const FTY={bank:['🩸','ব্লাড ব্যাংক'],hospital:['🏥','হাসপাতাল'],amb:['🚑','অ্যাম্বুলেন্স']};
+function infoTab(){FD=FD||ME.dist;return `<div class="seg"><button class="${IT==='num'?'on':''}" onclick="IT='num';render()">📞 জরুরি নাম্বার</button><button class="${IT==='guide'?'on':''}" onclick="IT='guide';render()">📖 রক্তদানের নিয়ম</button></div>`+(IT==='num'?numTab():guideTab())}
+function numTab(){
+  const nat='<div class="card" style="flex-direction:column;align-items:stretch;gap:8px;border-color:#ff2d4b"><b>🚨 জাতীয় জরুরি সেবা</b><div class="row"><a class="shb" style="background:#B3122B;margin:0" href="tel:999">📞 ৯৯৯<br><small>জাতীয় জরুরি সেবা</small></a><a class="shb" style="background:#1d6fd8;margin:0" href="tel:16263">📞 ১৬২৬৩<br><small>স্বাস্থ্য বাতায়ন</small></a></div><small style="color:var(--m)">এগুলো সরকারি নাম্বার। জরুরি অবস্থায় আগে এখানে ফোন করুন।</small></div>';
+  const l=FAC.filter(f=>f.dist===FD&&(!FT||f.type===FT)).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const chips=`<div class="chips"><button class="${FT?'':'on'}" onclick="FT='';render()">সব</button>${Object.entries(FTY).map(([k,v])=>`<button class="${FT===k?'on':''}" onclick="FT='${k}';render()">${v[0]} ${v[1]}</button>`).join('')}</div>`;
+  const add=adm()?`<details class="admbox"><summary>➕ নতুন নাম্বার যোগ করুন (অ্যাডমিন)</summary><select id="ft">${Object.entries(FTY).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><input id="fn" placeholder="নাম (যেমন: রাজবাড়ী সদর হাসপাতাল)"><input id="fp" inputmode="tel" placeholder="ফোন নাম্বার"><input id="fa" placeholder="ঠিকানা বা বিবরণ (ঐচ্ছিক)"><button class="p" onclick="addFac()">যোগ করুন</button></details>`:'';
+  return nat+`<label style="margin-top:14px">জেলা</label><select onchange="FD=this.value;render()">${dopts(FD)}</select>`+chips+(l.length?l.map(f=>`<div class="card fc"><div class="fi">${(FTY[f.type]||['📍'])[0]}</div><div class="i"><b>${esc(f.name)}</b>${f.addr?`<small>📍 ${esc(f.addr)}</small>`:''}<small>${esc((FTY[f.type]||['',''])[1])}</small></div><div class="ac"><a href="tel:${esc(f.phone)}" aria-label="কল">${IC.ph}</a>${adm()?`<button class="rd" data-i="${esc(f.id)}" onclick="delFac(this.dataset.i)" aria-label="মুছুন">${IC.del}</button>`:''}</div></div>`).join(''):'<p class="c">এই জেলায় এখনো কোনো নাম্বার যোগ করা হয়নি।</p>')+add}
+async function addFac(){const f={type:$('#ft').value,name:$('#fn').value.trim(),phone:$('#fp').value.trim(),addr:$('#fa').value.trim(),dist:FD,ts:Date.now()};
+  if(!f.name||!/^[0-9+\-\s]{3,20}$/.test(f.phone))return alert('নাম ও সঠিক ফোন নাম্বার দিন');
+  try{await db.collection('facilities').add(f);alert('যোগ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
+async function delFac(id){if(!confirm('এই নাম্বারটি মুছবেন?'))return;try{await db.collection('facilities').doc(id).delete()}catch(e){alert('সমস্যা: '+e.message)}}
+function guideTab(){return `<details open><summary>✅ কারা রক্ত দিতে পারেন</summary><ul><li>সাধারণত ১৮ থেকে ৬০ বছর বয়সী সুস্থ নারী-পুরুষ (ব্লাড ব্যাংকভেদে বয়সসীমা কিছুটা আলাদা হতে পারে)।</li><li>ওজন সাধারণত কমপক্ষে ৪৫–৫০ কেজি।</li><li>শরীরের তাপমাত্রা স্বাভাবিক থাকতে হবে, জ্বর বা অসুস্থতা থাকলে নয়।</li><li>হিমোগ্লোবিন পরীক্ষায় রক্তস্বল্পতা (অ্যানিমিয়া) ধরা না পড়লে।</li></ul></details>
+<details><summary>⏳ কতদিন পর আবার দেওয়া যায়</summary><ul><li>সাধারণত ৪ মাস (১২০ দিন) পর আবার রক্ত দেওয়া যায়। এই অ্যাপেও ৪ মাস ধরে হিসাব করা হয়।</li><li>নারীদের ক্ষেত্রে কিছু জায়গায় ৬ মাসের কথাও বলা হয়। ব্লাড ব্যাংকের নিয়ম জেনে নিন।</li></ul></details>
+<details><summary>🍽️ রক্ত দেওয়ার আগে</summary><ul><li>আগের রাতে ভালো ঘুমান।</li><li>খালি পেটে না গিয়ে হালকা খাবার খান, প্রচুর পানি পান করুন।</li><li>নিয়মিত কোনো ওষুধ খেলে বা কোনো রোগ থাকলে আগে চিকিৎসক বা ব্লাড ব্যাংকের কর্মীকে জানান।</li></ul></details>
+<details><summary>🩸 রক্ত দেওয়ার সময়</summary><ul><li>সাধারণত ২৫০–৪৫০ মিলিলিটার রক্ত নেওয়া হয়, যা শরীরের মোট রক্তের অল্প একটি অংশ।</li><li>প্রশিক্ষিত কর্মী নতুন জীবাণুমুক্ত সুই ও ব্যাগ ব্যবহার করেন। কোনো সুই বা ব্যাগ দ্বিতীয়বার ব্যবহার হয় না।</li></ul></details>
+<details><summary>🛌 রক্ত দেওয়ার পরে</summary><ul><li>১০–১৫ মিনিট বিশ্রাম নিন, পানি বা জুস খান।</li><li>অন্তত একদিন ভারী কাজ, ব্যায়াম বা ঝুঁকিপূর্ণ কাজ (যেমন গাড়ি চালানো) থেকে বিরত থাকুন।</li><li>মাথা ঘুরলে বা দুর্বল লাগলে শুয়ে পড়ুন, দরকার হলে চিকিৎসকের সাহায্য নিন।</li></ul></details>
+<details><summary>⛔ কারা এখন রক্ত দেবেন না</summary><ul><li>জ্বর, ঠান্ডা বা কোনো সংক্রমণ থাকলে।</li><li>গর্ভাবস্থায় এবং প্রসব বা গর্ভপাতের পর ছয় মাস পর্যন্ত।</li><li>হিমোগ্লোবিন কম থাকলে (রক্তস্বল্পতা)।</li><li>রক্তবাহিত রোগ (যেমন হেপাটাইটিস বি বা সি, এইচআইভি) থাকলে। ব্লাড ব্যাংক রক্ত পরীক্ষা করে নেয়।</li></ul></details>
+<details><summary>⚠️ দালাল থেকে সাবধান</summary><ul><li>দাতা সরাসরি রোগী বা তাঁর পরিবারের সাথে কথা বলুন।</li><li>কেউ টাকা চাইলে বা টাকার লেনদেনের কথা বললে নিশ্চিত না হয়ে এগোবেন না।</li></ul></details>
+<p style="color:var(--m);font-size:13px;margin:12px 4px">এটি সাধারণ তথ্য, চিকিৎসকের পরামর্শের বিকল্প নয়। আপনি রক্ত দিতে পারবেন কিনা, তা ব্লাড ব্যাংক বা চিকিৎসকই চূড়ান্তভাবে জানাবেন।</p>`}
+// ===== ডিজিটাল ডোনার কার্ড =====
+const FONT='"Noto Sans Bengali","Hind Siliguri","Kalpurush",system-ui,sans-serif';
+function rrect(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function cardImg(){const p=safePhoto(ME.photo);return new Promise(r=>{if(!p)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=p})}
+async function drawCard(c,showPhone){const W=1080,H=1350,ph=await cardImg();c.width=W;c.height=H;const x=c.getContext('2d');
+  const T=(t,px,y,size,col,wt,al,maxw)=>{let z=size;x.font=`${wt||700} ${z}px ${FONT}`;while(maxw&&x.measureText(t).width>maxw&&z>16){z-=2;x.font=`${wt||700} ${z}px ${FONT}`}x.fillStyle=col;x.textAlign=al||'center';x.textBaseline='middle';x.fillText(t,px,y)};
+  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2a0712');g.addColorStop(.55,'#0b0d14');g.addColorStop(1,'#14060b');x.fillStyle=g;x.fillRect(0,0,W,H);
+  g=x.createRadialGradient(W/2,500,20,W/2,500,560);g.addColorStop(0,'rgba(255,45,75,.5)');g.addColorStop(1,'rgba(255,45,75,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.save();x.strokeStyle='#ff2d4b';x.lineWidth=6;x.shadowColor='#ff2d4b';x.shadowBlur=30;rrect(x,36,36,W-72,H-72,52);x.stroke();x.restore();
+  T('রক্তদাতা কার্ড',W/2,105,60,'#ffffff',800);x.fillStyle='#ff2d4b';rrect(x,W/2-60,150,120,6,3);x.fill();
+  x.save();x.shadowColor='#ff2d4b';x.shadowBlur=50;g=x.createLinearGradient(0,215,0,655);g.addColorStop(0,'#ff6b83');g.addColorStop(1,'#a50f27');x.fillStyle=g;
+  x.beginPath();x.moveTo(540,215);x.bezierCurveTo(475,315,390,395,390,505);x.arc(540,505,150,Math.PI,0,true);x.bezierCurveTo(690,395,605,315,540,215);x.fill();x.restore();
+  T(ME.group||'',540,520,120,'#ffffff',800);
+  const nm=ME.name||'';x.font=`800 74px ${FONT}`;const nw=Math.min(x.measureText(nm).width,760),gap=ph?150:0,sx=(W-(nw+gap))/2;
+  if(ph){x.save();x.beginPath();x.arc(sx+60,730,60,0,7);x.closePath();x.clip();x.drawImage(ph,sx,670,120,120);x.restore();x.strokeStyle='#ff2d4b';x.lineWidth=5;x.beginPath();x.arc(sx+60,730,62,0,7);x.stroke()}
+  T(nm,sx+gap,730,74,'#ffffff',800,'left',760);
+  T([ME.dist,ME.area].filter(Boolean).join(' • '),W/2,805,40,'#c3cad6',500,'center',900);
+  const pill=(y,t,col,bg)=>{x.font=`700 44px ${FONT}`;const w=x.measureText(t).width+90;x.fillStyle=bg;rrect(x,(W-w)/2,y-42,w,84,42);x.fill();x.strokeStyle=col;x.lineWidth=3;x.stroke();T(t,W/2,y,44,col,700)};
+  let y=895;const n=nTimes(ME);if(n){pill(y,bn(n)+' বার রক্ত দিয়েছি','#ffd24a','rgba(255,210,74,.12)');y+=96}
+  if(ok(ME)){pill(y,'এখন রক্ত দিতে পারি','#33e08a','rgba(51,224,138,.12)');y+=96}
+  if(showPhone)T('মোবাইল: '+ME.phone,W/2,y+10,50,'#ffffff',700);
+  x.fillStyle='#c4112d';rrect(x,90,1160,900,80,40);x.fill();T('দালাল নয়, সরাসরি দাতা খুঁজুন',W/2,1200,42,'#ffffff',800,'center',840);
+  T('ব্লাড ডোনার অ্যাপ • '+APPURL.replace(/^https?:\/\//,''),W/2,1288,26,'#9aa3b2',500,'center',900)}
+function closeCard(){const e=$('#cdw');if(e)e.remove()}
+function openCard(){closeCard();const e=document.createElement('div');e.id='cdw';e.style.cssText='position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.9);overflow:auto;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px';
+  e.innerHTML='<canvas id="cdc" style="width:100%;max-width:360px;border-radius:16px;box-shadow:0 0 30px rgba(255,45,75,.5)"></canvas><label class="lb" style="margin:0"><input type="checkbox" id="cdp"> কার্ডে আমার মোবাইল নাম্বার দেখান</label><small style="color:var(--m);max-width:360px;text-align:center">নাম্বার দেখালে ফেসবুকে সবাই দেখতে পাবে। ইচ্ছা না হলে টিক দেবেন না।</small><button class="p" style="max-width:360px;flex:none" onclick="shareCard()">📤 ফেসবুক বা হোয়াটসঅ্যাপে শেয়ার করুন</button><button style="max-width:360px;flex:none" onclick="saveCard()">⬇ ছবি সংরক্ষণ করুন</button><button style="max-width:360px;flex:none;background:transparent" onclick="closeCard()">বন্ধ করুন</button>';
+  document.body.appendChild(e);const c=$('#cdc'),cb=$('#cdp');cb.onchange=()=>drawCard(c,cb.checked);drawCard(c,false)}
+function saveCard(){$('#cdc').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='blood-donor-card.png';document.body.appendChild(a);a.click();a.remove()},'image/png')}
+function shareCard(){$('#cdc').toBlob(async b=>{const f=new File([b],'blood-donor-card.png',{type:'image/png'}),t='আমি রক্তদাতা। রক্তের গ্রুপ '+ME.group+'। রক্ত লাগলে "ব্লাড ডোনার" অ্যাপে সরাসরি দাতা খুঁজুন:\n'+APPURL;
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t});return}}catch(e){if(e&&e.name==='AbortError')return}
+  saveCard();alert('আপনার ফোনে সরাসরি শেয়ার হচ্ছে না। ছবিটা সংরক্ষণ হয়েছে, এবার ফেসবুকে নিজে পোস্ট করুন।')},'image/png')}
 function render(){
   let c='';
   if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><div class="fbar"><div class="srch"><span>🔍</span><input placeholder="নাম, এলাকা বা নাম্বার দিয়ে খুঁজুন" value="${esc(q)}" oninput="q=this.value;upd()"></div><div class="frow"><label class="sel"><small>📍 জেলা</small><select onchange="DST=this.value;upd()">${dopts(DST)}${adm()?`<option value="*" ${DST==='*'?'selected':''}>সব জেলা (অ্যাডমিন)</option>`:''}</select></label><label class="sel"><small>🩸 ব্লাড গ্রুপ</small><select onchange="flt=this.value;upd()"><option value="">সব গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select></label></div></div><div id="l" class="${ANIM?'ent':''}">${list()}</div>`;
   if(tab==='urg')c=`${dalalCard()}<form onsubmit="post(event)"><select name="group">${opts()}</select><input name="place" placeholder="হাসপাতাল / এলাকা" required><input name="phone" value="${esc(ME.phone)}" placeholder="যোগাযোগ নাম্বার" required><input name="note" placeholder="কী লাগবে? (যেমন: ২ ব্যাগ, আজ রাতে)"><button class="p">🚨 জরুরি পোস্ট করুন</button></form>`+
-    (URG.length?URG.map(p=>`<div class="card u"><div class="b">${esc(p.group)}</div><div class="i"><b>${esc(p.place)}</b><small>${esc(p.note)}</small><small>${esc(p.name)} • ${new Date(p.ts).toLocaleDateString('bn-BD')}</small></div><div class="ac"><a href="tel:${esc(p.phone)}" aria-label="কল">${IC.ph}</a><button class="bl" onclick="shareUrg('${p.id}')" aria-label="শেয়ার">${IC.sh}</button>${(p.uid===U.uid||adm())?`<button class="rd" onclick="del('urgent','${p.id}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div>`).join(''):'<p class="c">এখন কোনো জরুরি অনুরোধ নেই।</p>');
+    (urgList());
+  if(tab==='info')c=infoTab();
   if(tab==='chat')c=`<div class="card" onclick="openChat('all','সবার গ্রুপ')"><div class="b">👥</div><div class="i"><b>সবার গ্রুপ</b><small>সব দাতা ও গ্রহীতা একসাথে</small></div></div>`+
     CHATS.map(x=>{const o=Object.keys(x.names).find(k=>k!==U.uid);return `<div class="card" onclick="openChat('${x.id}','${esc(x.names[o]||'চ্যাট')}')"><div class="b">✉️</div><div class="i"><b>${esc(x.names[o]||'চ্যাট')}</b><small>${esc(x.last||'')}</small></div></div>`}).join('');
   if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.dist)}, ${esc(ME.area)}</small></div></div>
@@ -318,9 +395,10 @@ function render(){
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
     <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
     ${ME.pin?'':`<div class="card" style="flex-direction:column;align-items:stretch"><b>🔒 পিন সেট করুন</b><small style="color:var(--m)">আনইনস্টল করে আবার ঢুকতে এই পিন লাগবে</small><input id="pn" type="password" inputmode="numeric" maxlength="6" placeholder="৪-৬ ডিজিটের পিন"><button class="p" onclick="setPin()">পিন সংরক্ষণ</button></div>`}
+    <button class="p" onclick="openCard()" style="margin-bottom:10px">🪪 আমার ডোনার কার্ড তৈরি করুন</button>
     <button class="p" onclick="shareApp()" style="margin-top:4px">📤 অ্যাপটি বন্ধুদের শেয়ার করুন</button>
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
-  A.innerHTML=`${tab==='home'?hero()+statsHtml():'<header>🩸 ব্লাড ডোনার</header>'}<div class="w${ANIM?' fin':''}">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';ANIM=true;render()"><span>${i}</span>${v}</button>`).join('')}</nav>`;if(tab==='home')stats();if(ANIM&&!ANIMT&&(tab!=='home'||USERS.length))ANIMT=setTimeout(()=>{ANIM=false;ANIMT=0},900)}
+  A.innerHTML=`${tab==='home'?hero()+statsHtml():'<header>🩸 ব্লাড ডোনার</header>'}<div class="w${ANIM?' fin':''}">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['info','🏥','তথ্য'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';ANIM=true;render()"><span>${i}</span>${v}</button>`).join('')}</nav>`;if(tab==='home')stats();if(ANIM&&!ANIMT&&(tab!=='home'||USERS.length))ANIMT=setTimeout(()=>{ANIM=false;ANIMT=0},900)}
 
 async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||'',times:Math.min(999,Math.max(0,Math.floor(Number($('#et').value)||0))),ts:Date.now()};
   if(!d.name||!d.area||!d.dist)return alert('নাম, জেলা ও এলাকা খালি রাখা যাবে না');
