@@ -120,6 +120,8 @@ nav button.on:after{content:'';width:34px;height:3px;border-radius:3px;backgroun
 .ss button.on{color:#ffd24a;border-color:#ffd24a;box-shadow:0 0 10px rgba(255,210,74,.45)}
 .rvd{width:auto;min-height:0;margin:8px 0 0;padding:4px 12px;font-size:13px;border-radius:10px;color:var(--rt)}
 .slogo{width:156px;height:156px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px rgba(255,255,255,.14);filter:drop-shadow(0 0 22px rgba(255,60,80,.75));animation:beat 1.2s ease-in-out infinite}
+small.tm{color:#ffd24a!important;font-weight:700}
+.gbtn{background:linear-gradient(135deg,#1fb871,#0e7c4a);color:#fff;border:0;font-weight:700;box-shadow:0 4px 16px rgba(31,184,113,.35)}
 @media(prefers-reduced-motion:reduce){.slogo{animation:none}.onl i{animation:none}.fin,#l.ent .card,#l .card.sk,.hero>svg,.hero .hh{animation:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.splash svg,.dots span{animation:none}.ecg{animation:none;stroke-dashoffset:0}}
 </style></head><body>
@@ -236,7 +238,13 @@ function zoomPhoto(id){const u=USERS.find(x=>x.id===id),p=u&&safePhoto(u.photo);
   e.style.cssText='position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px';
   e.innerHTML=`<img src="${p}" style="width:240px;height:240px;border-radius:50%;object-fit:cover;border:3px solid #ff2d4b;box-shadow:0 0 28px rgba(255,45,75,.6)"><b style="font-size:20px">${esc(u.name)}</b><button class="p" style="max-width:260px;flex:none" onclick="closeAlert()">✕ বন্ধ করুন</button>${adm()?`<button style="max-width:260px;flex:none" onclick="admDelPhoto('${u.id}')">🗑 ছবি মুছুন (অ্যাডমিন)</button>`:''}`;document.body.appendChild(e)}
 async function admDelPhoto(id){if(!confirm('এই ছবিটা মুছবেন?'))return;try{await db.collection('users').doc(id).update({photo:''});closeAlert()}catch(e){alert('সমস্যা: '+e.message)}}
-const card=u=>`<div class="card">${bag(u.group)}<div class="i"><div class="nm">${avatar(u)}<b>${esc(u.name)}</b></div><small>📍 ${esc(u.area)} &nbsp;|&nbsp; 🩸 শেষ রক্তদান: ${ago(u.last)}</small><div class="r2"><div>${ok(u)?'<span class="st g">দিতে পারবেন</span>':'<span class="st r">এখন পারবেন না</span>'}${rchip(u.phone)}<small class="ph">📞 ${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}" aria-label="কল">${IC.ph}</a><a href="https://wa.me/88${esc(u.phone)}" aria-label="হোয়াটসঅ্যাপ">${IC.wa}</a>${u.id!==U.uid?`<button class="bl" onclick="pm('${u.id}')" aria-label="চ্যাট">${IC.ms}</button>`:''}${adm()?`<button class="rd" onclick="delU('${esc(u.phone)}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div></div></div>`;
+// ===== রক্তদানের সংখ্যা =====
+const nTimes=u=>Math.min(999,Math.max(0,Math.floor(Number(u&&u.times)||0)));
+const tmLine=u=>nTimes(u)?`<small class="tm">🏅 ${bn(nTimes(u))} বার রক্ত দিয়েছেন</small>`:'';
+async function donatedToday(){if(!confirm('আজ রক্ত দিয়েছেন?\nমোট রক্তদানের সংখ্যা ১ বাড়বে আর শেষ রক্তদানের তারিখ আজ হবে। এর পর ৪ মাস আপনাকে "এখন পারবেন না" দেখাবে।'))return;
+  const t=new Date(),d={times:nTimes(ME)+1,last:t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'),ts:Date.now()};
+  try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);render();alert('ধন্যবাদ! আপনার রক্তদান যোগ হয়েছে।')}catch(e){alert('সমস্যা: '+e.message)}}
+const card=u=>`<div class="card">${bag(u.group)}<div class="i"><div class="nm">${avatar(u)}<b>${esc(u.name)}</b></div><small>📍 ${esc(u.area)} &nbsp;|&nbsp; 🩸 শেষ রক্তদান: ${ago(u.last)}</small>${tmLine(u)}<div class="r2"><div>${ok(u)?'<span class="st g">দিতে পারবেন</span>':'<span class="st r">এখন পারবেন না</span>'}${rchip(u.phone)}<small class="ph">📞 ${esc(u.phone)}</small></div><div class="ac"><a href="tel:${esc(u.phone)}" aria-label="কল">${IC.ph}</a><a href="https://wa.me/88${esc(u.phone)}" aria-label="হোয়াটসঅ্যাপ">${IC.wa}</a>${u.id!==U.uid?`<button class="bl" onclick="pm('${u.id}')" aria-label="চ্যাট">${IC.ms}</button>`:''}${adm()?`<button class="rd" onclick="delU('${esc(u.phone)}')" aria-label="মুছুন">${IC.del}</button>`:''}</div></div></div></div>`;
 function list(){if(!LOADED)return '<div class="card sk"></div><div class="card sk"></div><div class="card sk"></div>';const t=q.toLowerCase();
   const l=USERS.filter(u=>(DST==='*'||(u.dist||'রাজবাড়ী')===DST)&&(!flt||u.group===flt)&&(!t||(u.name+u.area+u.phone).toLowerCase().includes(t))).sort((a,b)=>ok(b)-ok(a));
   return l.length?`<p style="margin:4px 0 8px;color:var(--m)">${DST&&DST!=='*'?esc(DST)+' জেলায় ':''}${bn(l.length)} জন দাতা</p>`+l.map(card).join(''):'<p class="c">এই জেলায় কোনো দাতা পাওয়া যায়নি। অন্য জেলা, গ্রুপ বা নাম দিয়ে খুঁজুন।</p>'}
@@ -305,7 +313,7 @@ function render(){
   if(tab==='me')c=`<div class="card"><div class="b">${esc(ME.group)}</div><div class="i"><b>${esc(ME.name)}</b><small>${esc(ME.phone)} • ${esc(ME.dist)}, ${esc(ME.area)}</small></div></div>
     <div style="margin:-2px 0 12px">${rchip(ME.phone,1)}</div>
     <div class="card" style="flex-direction:column;align-items:center;gap:10px"><div>${avatar({name:ME.name,photo:ME.photo},1)}</div><input type="file" id="pf" accept="image/*" hidden onchange="pickPhoto(this)"><div class="row" style="width:100%"><button class="p" style="margin:0" onclick="$('#pf').click()">📷 ${ME.photo?'ছবি বদলান':'ছবি দিন'}</button>${ME.photo?'<button style="margin:0" onclick="delPhoto()">মুছুন</button>':''}</div><small style="color:var(--m);text-align:center">ছবি দিলে সব ব্যবহারকারী আপনার ছবি দেখতে পাবে</small></div>
-    <label>নাম</label><input id="en" value="${esc(ME.name)}"><label>জেলা</label><select id="ed">${dopts(ME.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(ME.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(ME.group)}</select>
+    <label>নাম</label><input id="en" value="${esc(ME.name)}"><label>জেলা</label><select id="ed">${dopts(ME.dist,1)}</select><label>এলাকা</label><input id="ea" value="${esc(ME.area)}"><label>ব্লাড গ্রুপ</label><select id="eg">${opts(ME.group)}</select><label>এ পর্যন্ত কতবার রক্ত দিয়েছেন</label><input id="et" type="number" inputmode="numeric" min="0" max="999" value="${nTimes(ME)}"><button class="gbtn" onclick="donatedToday()">✔ আজ রক্ত দিয়েছি (সংখ্যা +১, তারিখ আজ)</button>
     <label class="lb"><input type="checkbox" id="av" ${ME.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(ME.last)}">
     <button class="p" onclick="saveMe()">সংরক্ষণ করুন</button>
@@ -314,7 +322,7 @@ function render(){
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`;
   A.innerHTML=`${tab==='home'?hero()+statsHtml():'<header>🩸 ব্লাড ডোনার</header>'}<div class="w${ANIM?' fin':''}">${c}</div><nav>${[['home','🏠','দাতা'],['urg','🚨','জরুরি'],['chat','💬','চ্যাট'],['me','👤','আমি']].map(([k,i,v])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';ANIM=true;render()"><span>${i}</span>${v}</button>`).join('')}</nav>`;if(tab==='home')stats();if(ANIM&&!ANIMT&&(tab!=='home'||USERS.length))ANIMT=setTimeout(()=>{ANIM=false;ANIMT=0},900)}
 
-async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||'',ts:Date.now()};
+async function saveMe(){const d={name:$('#en').value.trim(),dist:$('#ed').value,area:$('#ea').value.trim(),group:$('#eg').value,avail:$('#av').checked,last:$('#la').value||'',times:Math.min(999,Math.max(0,Math.floor(Number($('#et').value)||0))),ts:Date.now()};
   if(!d.name||!d.area||!d.dist)return alert('নাম, জেলা ও এলাকা খালি রাখা যাবে না');
   try{await db.collection('users').doc(U.uid).update(d);Object.assign(ME,d);DST=d.dist;render();alert('সংরক্ষণ হয়েছে')}catch(e){alert('সমস্যা: '+e.message)}}
 async function post(e){e.preventDefault();const f=e.target;
