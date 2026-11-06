@@ -149,6 +149,13 @@ details ul,details p{margin:10px 0 2px;color:#d3d8e2;font-size:14.5px;line-heigh
 .consent{display:flex;gap:12px;align-items:flex-start;background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:12px;margin:6px 0 14px;font-size:14.5px;color:var(--ink);line-height:1.55;font-weight:400}
 .consent input{width:22px;min-height:0;height:22px;margin:2px 0 0;flex:none;accent-color:var(--r)}
 .afoot{text-align:center;color:var(--m);font-size:12.5px;margin-top:18px}
+#ppw{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:18px;animation:fdi .25s}@keyframes fdi{from{opacity:0}}
+.ppc{position:relative;width:100%;max-width:420px;max-height:88vh;max-height:88dvh;overflow:auto;background:var(--card);border:1.5px solid #ff2d4b;border-radius:24px;padding:14px;box-shadow:0 0 50px rgba(255,45,75,.5);animation:rise .4s ease both}
+.ppc img.ppi{width:100%;border-radius:16px;display:block;margin-bottom:12px}.ppc h3{font-size:22px;margin:4px 4px 8px}.ppc p{white-space:pre-wrap;line-height:1.65;font-weight:400;font-size:16px;margin:0 4px 14px;color:#e3e7ee;word-break:break-word}.ppc a{color:#7db7ff}
+.ppx{position:absolute;top:10px;right:10px;width:38px;height:38px;min-height:0;margin:0;padding:0;border-radius:50%;background:rgba(0,0,0,.65);font-size:17px;z-index:2}
+.tg{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;margin:0 0 8px;background:var(--chip);color:var(--ink);font-size:16px}
+.tg input{-webkit-appearance:none;appearance:none;width:54px;height:30px;min-height:0;margin:0;border-radius:99px;background:#3a4252;position:relative;flex:none;border:0;transition:background .2s}.tg input:checked{background:var(--r)}
+.tg input::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}.tg input:checked::after{left:27px}
 @media(prefers-reduced-motion:reduce){.adrop{animation:none}.slogo{animation:none}.onl i{animation:none}.fin,#l.ent .card,#l .card.sk,.hero>svg,.hero .hh{animation:none!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.splash svg,.dots span{animation:none}.ecg{animation:none;stroke-dashoffset:0}}
 </style></head><body>
@@ -261,7 +268,7 @@ function start(){if(!ME.dist){ME.dist='রাজবাড়ী';db.collection('
   db.collection('calls').where('to','==',U.uid).where('status','==','ringing').onSnapshot(q=>q.docChanges().forEach(c=>{
     if(c.type==='added'){const d=c.doc.data();if(Date.now()-d.ts<60000&&!CALL){CALL=c.doc.id;RING=c.doc.id;ring(c.doc.id,d)}}
     if(c.type==='removed'&&RING===c.doc.id){RING=null;finish('কল শেষ হয়েছে')}}));
-  render();startPresence()}
+  db.collection('config').doc('popup').onSnapshot(s=>{CFGP=s.exists?s.data():null;if(tab==='me')render();setTimeout(()=>maybePopup(CFGP),700)},()=>{});render();startPresence()}
 
 const adm=()=>U.uid===ADMIN;
 const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
@@ -427,6 +434,7 @@ function meView(){const a=ok(ME);
     ${ME.pin?'':`<div class="card" style="flex-direction:column;align-items:stretch"><b>🔒 পিন সেট করুন</b><small style="color:var(--m)">আনইনস্টল করে আবার ঢুকতে এই পিন লাগবে</small><input id="pn" type="password" inputmode="numeric" maxlength="6" placeholder="৪-৬ ডিজিটের পিন"><button class="p" onclick="setPin()">পিন সংরক্ষণ</button></div>`}
     <button class="p" onclick="openCard()" style="margin-bottom:10px">🪪 আমার ডোনার কার্ড তৈরি করুন</button>
     <button class="p" onclick="shareApp()" style="margin-top:4px">📤 অ্যাপটি বন্ধুদের শেয়ার করুন</button>
+    ${adm()?`<div class="card" style="flex-direction:column;align-items:stretch;gap:8px;margin-top:12px;border-color:#ffd24a"><b>📢 পপআপ নোটিশ (অ্যাডমিন)</b><small style="color:var(--m)">এখন: ${CFGP&&CFGP.on?'🟢 চালু':'⚪ বন্ধ'}</small><div class="row"><button class="p" style="margin:0" onclick="openPopupEditor()">✏️ সম্পাদনা</button><button style="margin:0" onclick="togPopup()">${CFGP&&CFGP.on?'বন্ধ করুন':'চালু করুন'}</button></div></div>`:''}
     <p style="color:var(--m);font-size:12px;word-break:break-all">আপনার UID: ${U.uid}</p><div class="card" style="flex-direction:column;align-items:flex-start;margin-top:14px"><b>এই অ্যাপ সম্পর্কে</b><small style="color:var(--m)">রক্তদাতা খোঁজার জন্য এই অ্যাপটি তৈরি করেছেন<br><b style="color:var(--ink)">রুহুল আমিন</b><br>রুহুল আমিন মোবাইল সার্ভিসিং সেন্টার, বানিবহ, রাজবাড়ী</small></div>`}
 function meEdit(){const d=DRAFT,v=d||{name:ME.name,dist:ME.dist,area:ME.area,group:ME.group,times:nTimes(ME),avail:ME.avail,last:ME.last||''};
   return `<div class="seg"><button onclick="cancelEdit()">← পিছনে</button><button class="on" style="pointer-events:none">✏️ প্রোফাইল এডিট</button></div>
@@ -435,6 +443,37 @@ function meEdit(){const d=DRAFT,v=d||{name:ME.name,dist:ME.dist,area:ME.area,gro
     <label class="lb"><input type="checkbox" id="av" ${v.avail?'checked':''}> আমি রক্ত দিতে প্রস্তুত</label>
     <label>সর্বশেষ রক্ত দিয়েছি</label><input type="date" id="la" value="${esc(v.last)}">
     <div class="row"><button class="p" onclick="saveMe()">সংরক্ষণ করুন</button><button onclick="cancelEdit()">বাতিল</button></div>`}
+// ===== অ্যাডমিনের পপআপ নোটিশ =====
+let CFGP=null,PPIMG='',PPIMG0='',PPS=0;
+const safeImg=p=>typeof p==='string'&&p.length<450000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(p)?p:'';
+const linkify=t=>esc(t).replace(/(https?:\/\/[^\s<]+)/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+function closePP(){const e=$('#ppw');if(e)e.remove()}
+function showPopup(c,img,preview){closePP();const showT=c.showText&&(c.title||c.text),e=document.createElement('div');e.id='ppw';e.style.zIndex=preview?'100':'99';
+  e.onclick=ev=>{if(ev.target===e)ppDone(c,preview)};
+  e.innerHTML=`<div class="ppc"><button class="ppx" aria-label="বন্ধ">✕</button>${img?`<img class="ppi" src="${img}" alt="">`:''}${showT&&c.title?`<h3>${esc(c.title)}</h3>`:''}${showT&&c.text?`<p>${linkify(c.text)}</p>`:''}<button class="p" style="margin:0">✓ ঠিক আছে</button></div>`;
+  e.querySelectorAll('button').forEach(b=>b.onclick=()=>ppDone(c,preview));document.body.appendChild(e)}
+function ppDone(c,preview){if(!preview){try{localStorage.setItem('pp',String(c.ver))}catch(x){}}closePP()}
+async function maybePopup(c){if(!c||!c.on||inChat)return;const hasT=c.showText&&(c.title||c.text);if(!hasT&&!c.showImg)return;
+  if(PPS===c.ver||$('#ppw'))return;try{if(!c.every&&localStorage.getItem('pp')===String(c.ver))return}catch(x){}
+  let img='';if(c.showImg){try{const d=await db.collection('config').doc('popupimg').get();img=safeImg(d.exists?d.data().img:'')}catch(x){}}
+  if(!hasT&&!img)return;PPS=c.ver;showPopup(c,img,false)}
+async function togPopup(){const on=!(CFGP&&CFGP.on);try{await db.collection('config').doc('popup').set({on:on,ver:(CFGP&&CFGP.ver)||Date.now()},{merge:true});if(on)PPS=0}catch(e){alert('সমস্যা: '+e.message)}}
+async function openPopupEditor(){if(!adm())return;closeEd();const c=CFGP||{on:false,showText:true,showImg:true,every:false,title:'',text:''};PPIMG='';
+  try{const d=await db.collection('config').doc('popupimg').get();PPIMG=safeImg(d.exists?d.data().img:'')}catch(x){}PPIMG0=PPIMG;
+  const tg=(id,t,v)=>`<label class="tg"><span>${t}</span><input type="checkbox" id="${id}" ${v?'checked':''}></label>`;
+  const e=document.createElement('div');e.id='ppe';e.style.cssText='position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.78);display:flex;align-items:flex-end';e.onclick=ev=>{if(ev.target===e)closeEd()};
+  e.innerHTML=`<div class="rvp"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b style="font-size:20px">📢 পপআপ নোটিশ</b><button onclick="closeEd()" style="width:44px;min-height:0;margin:0;padding:8px" aria-label="বন্ধ">✕</button></div>${tg('pp_on','পপআপ চালু',c.on)}${tg('pp_t','লেখা দেখান',c.showText!==false)}${tg('pp_i','ছবি দেখান',c.showImg!==false)}${tg('pp_e','প্রতিবার অ্যাপ খুললে দেখান',c.every)}<label style="margin-top:8px">শিরোনাম (ঐচ্ছিক)</label><input id="pp_ti" maxlength="80" value="${esc(c.title||'')}" placeholder="যেমন: বিশেষ ঘোষণা"><label>মূল লেখা</label><textarea id="pp_tx" rows="5" maxlength="800" placeholder="আপনার বার্তা বা নোটিশ লিখুন (লিংক দিলে চাপা যাবে)">${esc(c.text||'')}</textarea><label>ছবি</label><div id="pp_pv" style="margin-bottom:10px"></div><input type="file" id="pp_f" accept="image/*" hidden onchange="ppPick(this)"><div class="row"><button style="margin:0" onclick="$('#pp_f').click()">📷 ছবি বাছুন</button><button style="margin:0" onclick="PPIMG='';ppPrev()">ছবি মুছুন</button></div><div class="row" style="margin-top:10px"><button style="margin:0" onclick="previewPP()">👁 প্রিভিউ</button><button class="p" style="margin:0" onclick="savePP()">সংরক্ষণ করুন</button></div><small style="display:block;color:var(--m);margin-top:10px">সংরক্ষণ করলে সবাই নতুন নোটিশ হিসেবে একবার দেখবে। "ছবি/লেখা দেখান" বন্ধ রাখলেও সেগুলো সংরক্ষিত থাকে।</small></div>`;
+  document.body.appendChild(e);ppPrev()}
+function closeEd(){const e=$('#ppe');if(e)e.remove()}
+function ppPrev(){const e=$('#pp_pv');if(e)e.innerHTML=PPIMG?`<img src="${PPIMG}" style="width:100%;border-radius:14px;display:block">`:'<small style="color:var(--m)">কোনো ছবি নেই</small>'}
+async function ppPick(inp){const f=inp.files&&inp.files[0];if(!f||!/^image\//.test(f.type))return;
+  try{const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=URL.createObjectURL(f)});
+    let w=Math.min(900,img.width),q=.8,d;for(let k=0;k<6;k++){const c=document.createElement('canvas');c.width=w;c.height=Math.round(img.height*w/img.width);c.getContext('2d').drawImage(img,0,0,c.width,c.height);d=c.toDataURL('image/jpeg',q);if(d.length<400000)break;w=Math.round(w*.8);q=Math.max(.55,q-.08)}
+    URL.revokeObjectURL(img.src);if(d.length>=450000)return alert('ছবিটা অনেক বড়, ছোট ছবি বাছুন');PPIMG=d;ppPrev()}catch(e){alert('ছবি নেওয়া যায়নি: '+e.message)}}
+function ppForm(){return{on:$('#pp_on').checked,showText:$('#pp_t').checked,showImg:$('#pp_i').checked,every:$('#pp_e').checked,title:$('#pp_ti').value.trim().slice(0,80),text:$('#pp_tx').value.trim().slice(0,800)}}
+function previewPP(){const c=ppForm();c.ver=0;showPopup(c,c.showImg?PPIMG:'',true)}
+async function savePP(){const c=ppForm();c.ver=Date.now();
+  try{await db.collection('config').doc('popup').set(c);if(PPIMG!==PPIMG0){await db.collection('config').doc('popupimg').set({img:PPIMG||''});PPIMG0=PPIMG}PPS=0;closeEd();alert('পপআপ সংরক্ষিত হয়েছে'+(c.on?' (চালু)':' (এখন বন্ধ আছে)'))}catch(e){alert('সংরক্ষণ হয়নি: '+e.message)}}
 function render(){if(tab!=='me'&&EDIT){EDIT=false;DRAFT=null}if(tab==='me')grabDraft();
   let c='';
   if(tab==='home')c=`<div class="sec"><b>🩸 রক্তদাতা</b><small>এক ফোঁটা রক্ত<br>বাঁচাতে পারে একটি জীবন</small></div><div class="fbar"><div class="srch"><span>🔍</span><input placeholder="নাম, এলাকা বা নাম্বার দিয়ে খুঁজুন" value="${esc(q)}" oninput="q=this.value;upd()"></div><div class="frow"><label class="sel"><small>📍 জেলা</small><select onchange="DST=this.value;upd()">${dopts(DST)}${adm()?`<option value="*" ${DST==='*'?'selected':''}>সব জেলা (অ্যাডমিন)</option>`:''}</select></label><label class="sel"><small>🩸 ব্লাড গ্রুপ</small><select onchange="flt=this.value;upd()"><option value="">সব গ্রুপ</option>${G.map(g=>`<option ${g===flt?'selected':''}>${g}</option>`).join('')}</select></label></div></div><div id="l" class="${ANIM?'ent':''}">${list()}</div>`;
